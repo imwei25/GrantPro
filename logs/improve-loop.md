@@ -63,4 +63,22 @@
 - 现状/问题：`/api/extract` 用 `await file.read()` 无上限，配合局域网部署有 OOM 风险；`/api/docx` 若 build_docx 抛错返回裸 500 无可读信息。
 - 改进：`/api/extract` 改为分块读取，累计超 20MB 即中止并返回友好提示，避免整体读入内存；`/api/docx` 包 try/except，失败返回 400 + JSON 错误信息。
 - 验证：mock=✅（无回归）真实测试=✅ 22/22；curl 实测：正常 docx→200 PK 有效文件、小 txt 抽取 ok、22MB 文件→`{"ok":false,"error":"文件过大…"}`。
-- 提交：见下方 commit。
+- 提交：`5c79ca5`
+
+---
+
+## 轮次 1 小结（收敛验证）
+
+全套测试绿：后端 mock 自测 `[OK]`、test_formatting 9/9、test_literature 6/6、Playwright e2e 22/22。
+
+已落地 6 个方向：
+1. T8/T10 端到端用户测试框架（`81eeca6`）
+2. T7 docx 导出修复 Markdown 链接/加粗 + 中文字体（`4d727e4`）
+3. T8 复制按钮局域网静默失败修复（`950f6b7`）
+4. T2 PubMed 限速/429 重试/api_key（`d77df13`）
+5. T2/T7 立项依据导出 Word（`7c397dd`）
+6. T10 后端上传上限 + docx 友好错误（`5c79ca5`）
+
+**已知遗留 bug：0。** 剩余可提方向均属"功能增强"而非缺陷修复，已记入下方候选，待确认是否继续：
+- T3/T8 Mermaid 流程图渲染：研究方案提示词产出 ```mermaid``` 代码块，前端目前显示原始代码（提示词原意是"便于绘图"，用户自行取用，未必算 bug）。渲染需引入 mermaid 依赖（约 +500KB 打包体积）。
+- T8 remark-gfm：渲染 GFM 表格/删除线/自动链接。但现有提示词产出以标题+分点为主、引用用显式 Markdown 链接，实际收益有限。
