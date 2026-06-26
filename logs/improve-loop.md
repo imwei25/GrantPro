@@ -51,4 +51,10 @@
 - 现状/问题：`literature.py` 无限速、无重试、无 api_key、无 User-Agent；一次立项依据连发 3×esearch+1×efetch，易触发 NCBI 3 次/秒限速返回 429，被 `search_literature` 静默吞成"未检索到文献"。
 - 改进：新增 `_throttled_get()`——进程级最小请求间隔（无 key 0.4s/有 key 0.12s）+ 锁串行化 + 对 429/5xx/网络抖动指数退避重试（0.6/1.2/2.4s）+ 设 User-Agent；esearch/efetch 全部走它。config 增 `NCBI_API_KEY`（10 次/秒），`.env.example` 补文档。新增 `backend/test_literature.py` 离线校验。
 - 验证：mock=✅（无回归）单测=✅ 6/6（api_key 注入、429 重试成功、持续 429 抛出、带 UA）。
+- 提交：`d77df13`
+
+### [轮次 1 · T2/T7] 立项依据增加"导出 Word"
+- 现状/问题：立项依据是引用最密集的旗舰输出，却只能导出 Markdown，没有 Word；而方向 B 刚把 docx 超链接支持修好正是为它服务，能力闲置。
+- 改进：`lib/download.ts` 抽出公共 `downloadDocx()`（含错误返回）；`ResultPanel` 改用它（去掉重复 fetch）；`RationaleModule` 抽 `composeMarkdown()`（正文+参考文献链接）供 MD/Word 共用，新增"导出 Word"按钮，失败走模块 error 提示。e2e 加该按钮断言。
+- 验证：build=✅ 真实测试=✅ 22/22（新增"[rationale] 完成后有导出Word按钮"，无 pageerror）；docx 端到端有效性已在方向 B 验证。
 - 提交：见下方 commit。

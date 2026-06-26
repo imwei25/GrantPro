@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { streamRationale, Reference, Verification } from "../lib/sse";
 import Markdown from "../components/Markdown";
 import Dropzone from "../components/Dropzone";
-import { downloadText, tsName } from "../lib/download";
+import { downloadText, downloadDocx, tsName } from "../lib/download";
 import { usePersistentState } from "../lib/usePersistentState";
 import type { Goto } from "../App";
 
@@ -53,6 +53,15 @@ export default function RationaleModule({ goto }: { goto: Goto }) {
   const stop = () => {
     ctrl.current?.abort();
     setRunning(false);
+  };
+
+  // 正文 + 参考文献(Markdown 链接), 供导出 Markdown / Word 共用。
+  const composeMarkdown = () => {
+    const refMd = refs.length
+      ? "\n\n## 参考文献\n" +
+        refs.map((r) => `- [${r.first_author} (${r.year}). ${r.title}](${r.url})`).join("\n")
+      : "";
+    return text + refMd;
   };
 
   const reset = () => {
@@ -178,15 +187,21 @@ export default function RationaleModule({ goto }: { goto: Goto }) {
                 <button
                   className="btn-ghost"
                   data-testid="export-md-btn"
-                  onClick={() => {
-                    const refMd = refs.length
-                      ? "\n\n## 参考文献\n" +
-                        refs.map((r) => `- [${r.first_author} (${r.year}). ${r.title}](${r.url})`).join("\n")
-                      : "";
-                    downloadText(tsName("立项依据", "md"), text + refMd);
-                  }}
+                  onClick={() => downloadText(tsName("立项依据", "md"), composeMarkdown())}
                 >
                   导出 Markdown
+                </button>
+              )}
+              {text && !running && (
+                <button
+                  className="btn-ghost"
+                  data-testid="export-docx-btn"
+                  onClick={async () => {
+                    const err = await downloadDocx(tsName("立项依据", "docx"), composeMarkdown(), "立项依据");
+                    if (err) setError(err);
+                  }}
+                >
+                  导出 Word
                 </button>
               )}
             </div>

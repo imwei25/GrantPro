@@ -81,6 +81,7 @@ try {
   }
   await page.waitForTimeout(500);
   ok("[rationale] 出现引用核验区", await page.getByTestId("verify").isVisible().catch(() => false));
+  ok("[rationale] 完成后有导出Word按钮", await page.getByTestId("export-docx-btn").isVisible().catch(() => false));
 
   // ---- 全局: 无 JS 报错 ----
   ok("无 pageerror", pageErrors.length === 0, pageErrors.join(" | ").slice(0, 200));

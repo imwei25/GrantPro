@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Markdown from "./Markdown";
-import { downloadText, tsName } from "../lib/download";
-import { apiUrl } from "../lib/api";
+import { downloadText, downloadDocx, tsName } from "../lib/download";
 import { copyText } from "../lib/clipboard";
 
 interface Props {
@@ -40,19 +39,8 @@ export default function ResultPanel({
 
   const exportMd = () => downloadText(tsName(exportName ?? "结果", "md"), text);
 
-  const exportDocx = async () => {
-    const resp = await fetch(apiUrl("/api/docx"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, title: docxTitle ?? exportName ?? "" }),
-    });
-    const blob = await resp.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = tsName(exportName ?? "草稿", "docx");
-    a.click();
-    URL.revokeObjectURL(url);
+  const exportDocx = () => {
+    void downloadDocx(tsName(exportName ?? "草稿", "docx"), text, docxTitle ?? exportName ?? "");
   };
 
   return (
