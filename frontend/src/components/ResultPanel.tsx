@@ -2,6 +2,7 @@ import { useState } from "react";
 import Markdown from "./Markdown";
 import { downloadText, tsName } from "../lib/download";
 import { apiUrl } from "../lib/api";
+import { copyText } from "../lib/clipboard";
 
 interface Props {
   text: string;
@@ -29,12 +30,12 @@ export default function ResultPanel({
   onNext,
   docxTitle,
 }: Props) {
-  const [copied, setCopied] = useState(false);
+  const [copyState, setCopyState] = useState<"idle" | "ok" | "fail">("idle");
 
   const copy = async () => {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    const ok = await copyText(text);
+    setCopyState(ok ? "ok" : "fail");
+    setTimeout(() => setCopyState("idle"), 1500);
   };
 
   const exportMd = () => downloadText(tsName(exportName ?? "结果", "md"), text);
@@ -73,7 +74,7 @@ export default function ResultPanel({
           )}
           {text && !running && (
             <button className="btn-ghost" onClick={copy} data-testid="copy-btn">
-              {copied ? "已复制" : "复制"}
+              {copyState === "ok" ? "已复制" : copyState === "fail" ? "复制失败" : "复制"}
             </button>
           )}
           {text && !running && (

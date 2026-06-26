@@ -62,6 +62,12 @@ try {
     ok(`[${mod.id}] 完成后有导出Word按钮`, await page.getByTestId("export-docx-btn").isVisible().catch(() => false));
   }
 
+  // ---- 复制按钮: 点击后应给出"已复制/复制失败"反馈, 不抛异常(局域网回退路径) ----
+  await page.getByTestId("copy-btn").click().catch(() => {});
+  await page.waitForTimeout(200);
+  const copyLabel = await page.getByTestId("copy-btn").innerText().catch(() => "");
+  ok("复制按钮有结果反馈", /已复制|复制失败/.test(copyLabel), copyLabel);
+
   // ---- 立项依据 rationale (多阶段 SSE: status→references→delta→verify) ----
   await page.getByTestId("nav-rationale").click();
   await page.waitForTimeout(150);
