@@ -57,4 +57,10 @@
 - 现状/问题：立项依据是引用最密集的旗舰输出，却只能导出 Markdown，没有 Word；而方向 B 刚把 docx 超链接支持修好正是为它服务，能力闲置。
 - 改进：`lib/download.ts` 抽出公共 `downloadDocx()`（含错误返回）；`ResultPanel` 改用它（去掉重复 fetch）；`RationaleModule` 抽 `composeMarkdown()`（正文+参考文献链接）供 MD/Word 共用，新增"导出 Word"按钮，失败走模块 error 提示。e2e 加该按钮断言。
 - 验证：build=✅ 真实测试=✅ 22/22（新增"[rationale] 完成后有导出Word按钮"，无 pageerror）；docx 端到端有效性已在方向 B 验证。
+- 提交：`7c397dd`
+
+### [轮次 1 · T10] 后端端点健壮性：上传大小上限 + docx 友好错误
+- 现状/问题：`/api/extract` 用 `await file.read()` 无上限，配合局域网部署有 OOM 风险；`/api/docx` 若 build_docx 抛错返回裸 500 无可读信息。
+- 改进：`/api/extract` 改为分块读取，累计超 20MB 即中止并返回友好提示，避免整体读入内存；`/api/docx` 包 try/except，失败返回 400 + JSON 错误信息。
+- 验证：mock=✅（无回归）真实测试=✅ 22/22；curl 实测：正常 docx→200 PK 有效文件、小 txt 抽取 ok、22MB 文件→`{"ok":false,"error":"文件过大…"}`。
 - 提交：见下方 commit。

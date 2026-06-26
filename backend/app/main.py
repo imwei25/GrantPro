@@ -109,16 +109,37 @@ async def rationale(req: RunRequest) -> StreamingResponse:
     )
 
 
+# 上传文件大小上限(字节): 防止超大文件撑爆内存; 局域网部署时尤为重要。
+_MAX_UPLOAD = 20 * 1024 * 1024  # 20 MB
+
+
 @app.post("/api/extract")
 async def extract(file: UploadFile = File(...)) -> dict:
     """抽取上传文档(Word/PDF/Excel/CSV/txt)的纯文本, 供分析或润色。"""
-    content = await file.read()
-    return extract_text(file.filename or "file", content)
+    # 分块读取并在超限时尽早中止, 避免把任意大的文件整体读入内存。
+    chunks: list[bytes] = []
+    size = 0
+    while True:
+        chunk = await file.read(1024 * 1024)
+        if not chunk:
+            break
+        size += len(chunk)
+        if size > _MAX_UPLOAD:
+            return {"ok": False, "error": "文件过大（上限 20MB），请压缩或截取后再上传。"}
+        chunks.append(chunk)
+    return extract_text(file.filename or "file", b"".join(chunks))
 
 
 @app.post("/api/docx")
 async def docx(req: DocxRequest) -> Response:
-    data = build_docx(req.text, req.title)
+    try:
+        data = build_docx(req.text, req.title)
+    except Exception as e:  # noqa: BLE001
+        return Response(
+            content=json.dumps({"error": f"生成 Word 失败：{e}"}, ensure_ascii=False),
+            media_type="application/json",
+            status_code=400,
+        )
     return Response(
         content=data,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
