@@ -9,6 +9,8 @@
 """
 from __future__ import annotations
 
+import asyncio
+import time
 import xml.etree.ElementTree as ET
 
 import httpx
@@ -17,6 +19,12 @@ from .config import settings
 
 _BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 _TOOL = "nsfc-grant-assistant"
+_UA = "nsfc-grant-assistant/0.1 (PubMed literature grounding; +https://github.com/imwei25/GrantPro)"
+
+# NCBI 限速: 无 api_key 时 3 次/秒, 有 key 时 10 次/秒。留余量取 2.5 / 8 次每秒。
+# 用一个进程级最小间隔 + 锁来串行化, 避免一次立项依据连发多请求被 429。
+_rate_lock = asyncio.Lock()
+_last_request_ts = 0.0
 
 
 def pubmed_url(pmid: str) -> str:
@@ -28,7 +36,42 @@ def _common_params() -> dict:
     email = getattr(settings, "ncbi_email", "") or ""
     if email:
         p["email"] = email
+    api_key = getattr(settings, "ncbi_api_key", "") or ""
+    if api_key:
+        p["api_key"] = api_key
     return p
+
+
+def _min_interval() -> float:
+    return 0.12 if (getattr(settings, "ncbi_api_key", "") or "") else 0.4
+
+
+async def _throttled_get(client: httpx.AsyncClient, url: str, params: dict, retries: int = 3) -> httpx.Response:
+    """带限速间隔与退避重试的 GET。遇 429/5xx/网络抖动重试, 否则抛出。"""
+    global _last_request_ts
+    last_exc: Exception | None = None
+    for attempt in range(retries):
+        # 限速: 与上一次请求至少间隔 _min_interval 秒。
+        async with _rate_lock:
+            wait = _min_interval() - (time.monotonic() - _last_request_ts)
+            if wait > 0:
+                await asyncio.sleep(wait)
+            _last_request_ts = time.monotonic()
+        try:
+            r = await client.get(url, params=params, headers={"User-Agent": _UA})
+            if r.status_code == 429 or r.status_code >= 500:
+                last_exc = httpx.HTTPStatusError(
+                    f"NCBI 返回 {r.status_code}", request=r.request, response=r
+                )
+                await asyncio.sleep(0.6 * (2 ** attempt))  # 退避: 0.6s, 1.2s, 2.4s
+                continue
+            r.raise_for_status()
+            return r
+        except (httpx.TransportError, httpx.HTTPStatusError) as e:
+            last_exc = e
+            await asyncio.sleep(0.6 * (2 ** attempt))
+    assert last_exc is not None
+    raise last_exc
 
 
 async def esearch(client: httpx.AsyncClient, query: str, retmax: int = 8) -> list[str]:
@@ -40,8 +83,7 @@ async def esearch(client: httpx.AsyncClient, query: str, retmax: int = 8) -> lis
         "sort": "relevance",
         **_common_params(),
     }
-    r = await client.get(f"{_BASE}/esearch.fcgi", params=params)
-    r.raise_for_status()
+    r = await _throttled_get(client, f"{_BASE}/esearch.fcgi", params)
     data = r.json()
     return data.get("esearchresult", {}).get("idlist", [])
 
@@ -60,8 +102,7 @@ async def efetch(client: httpx.AsyncClient, pmids: list[str]) -> list[dict]:
         "rettype": "abstract",
         **_common_params(),
     }
-    r = await client.get(f"{_BASE}/efetch.fcgi", params=params)
-    r.raise_for_status()
+    r = await _throttled_get(client, f"{_BASE}/efetch.fcgi", params)
     root = ET.fromstring(r.text)
     papers: list[dict] = []
     for art in root.findall(".//PubmedArticle"):

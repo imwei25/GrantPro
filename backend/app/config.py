@@ -27,6 +27,9 @@ class Settings:
     port: int = int(os.getenv("PORT", "8766"))
     # 可选: 提供给 NCBI E-utilities 的联系邮箱(礼貌且可提高限速容忍度)
     ncbi_email: str = os.getenv("NCBI_EMAIL", "").strip()
+    # 可选: NCBI API key。填写后限速从 3 次/秒提升到 10 次/秒, 减少 429。
+    # 申请: https://www.ncbi.nlm.nih.gov/account/ -> Settings -> API Key Management
+    ncbi_api_key: str = os.getenv("NCBI_API_KEY", "").strip()
 
     # 备用供应商: 主供应商额度用完(余额不足/配额超限)时自动切换。
     # 留空则不启用自动降级。
