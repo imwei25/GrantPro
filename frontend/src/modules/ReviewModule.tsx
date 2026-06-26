@@ -23,7 +23,8 @@ export default function ReviewModule() {
   return (
     <div className="module">
       <header className="module-head">
-        <h1>🧐 评审模拟</h1>
+        <span className="eyebrow">04 · REVIEW</span>
+        <h1>评审模拟</h1>
         <p>三位不同背景的评审（同行专家 / 交叉学科 / 挑刺型）对你的申请书内容独立打分、挑刺，并汇总致命问题。</p>
       </header>
 

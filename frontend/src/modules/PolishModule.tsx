@@ -21,7 +21,8 @@ export default function PolishModule() {
   return (
     <div className="module">
       <header className="module-head">
-        <h1>✍️ 润色合规</h1>
+        <span className="eyebrow">05 · REFINE</span>
+        <h1>润色合规</h1>
         <p>
           把文本润色为规范的基金书面语（只改表达、不改内容、不编造），并生成一段符合基金委要求的
           <strong>「生成式 AI 使用标注」</strong>，可据实修改后附于材料。

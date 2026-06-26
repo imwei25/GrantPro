@@ -30,7 +30,8 @@ export default function CritiqueModule({ goto }: { goto: Goto }) {
   return (
     <div className="module">
       <header className="module-head">
-        <h1>💡 选题诊断</h1>
+        <span className="eyebrow">01 · DIAGNOSE</span>
+        <h1>选题诊断</h1>
         <p>以国自然评审专家的视角，评估你选题的创新性、科学问题属性归类，并挑出最可能被毙的硬伤。</p>
       </header>
 
