@@ -1,0 +1,98 @@
+# 国自然基金申请助手
+
+面向科研人员的 AI 辅助**国家自然科学基金（NSFC）申请书**写作桌面应用。
+五大能力，覆盖从选题到成稿的关键环节：
+
+| 模块 | 作用 |
+|---|---|
+| 💡 选题诊断 | 以评审专家视角评估创新性、归类科学问题属性（A/B/C/D）、挑出最可能被毙的硬伤 |
+| 📚 立项依据 | **实际检索 PubMed 真实文献**，据此撰写立项依据草稿，引用可点击并**自动核验有无编造文献** |
+| 🗺️ 研究方案 | 把构想组织成「研究目标—研究内容—关键科学问题—技术路线（含 Mermaid 图）—可行性」 |
+| 🧐 评审模拟 | 三位不同背景评审（同行 / 交叉 / 挑刺型）独立打分、挑刺，汇总致命问题 |
+| ✍️ 润色合规 | 润色为规范基金书面语，并生成符合基金委要求的**「生成式 AI 使用标注」** |
+
+> ⚠️ **合规第一**：按基金委规定，**不得直接使用 AI 生成的申请书**。AI 仅可用于检索文献、整理资料、
+> 语言润色等辅助环节，且**必须由本人核实所有内容与参考文献的真实性**，并如实标注 AI 使用情况。
+> 本工具的所有产出均为**草稿与建议**，请务必本人改写、核对后再使用。
+
+## 技术架构
+
+```
+浏览器 / Tauri 桌面外壳  ──加载──▶  前端 (Vite + React + TS)
+                                      │ HTTP /api (SSE 流式)
+                                      ▼
+                         本地 sidecar (Python FastAPI)
+                          · LLM 适配层 (OpenAI/Anthropic 格式 + mock + 自动降级)
+                          · 立项依据: PubMed 检索 + 文献接地 + 引用核验
+                          · 合规模块: AI 使用标注模板 + 提交前自查清单
+```
+
+设计原则（沿用「科研助手」的成熟做法）：
+- **双格式兼容**：通过 `LLM_PROVIDER` 在 OpenAI 兼容格式（DeepSeek / 硅基流动 / OpenAI）与 Anthropic 格式间切换，改 `backend/.env` 一处即可。
+- **自动降级**：主供应商余额不足/配额超限时，自动切到 `FALLBACK_*` 备用供应商继续。
+- **文献接地、反幻觉**：立项依据基于真实 PubMed 文献撰写，正文生成后回查每个引用，标出疑似编造，直击国自然“禁止编造文献”红线。
+- **合规内建**：每个模块的提示词都强调“辅助而非代写”，并内置 AI 使用标注与自查清单。
+- **本地优先**：所有处理在本机 sidecar 完成，仅模型调用走你自己的 API。
+
+## 目录结构
+
+```
+backend/        Python sidecar
+  app/
+    config.py       读取 .env 配置
+    llm.py          LLM 适配层(OpenAI/Anthropic/mock + 自动降级)
+    prompts.py      四个文本模块的提示词(选题诊断/研究方案/评审模拟/润色合规)
+    rationale.py    立项依据: PubMed 接地 + 引用核验
+    literature.py   PubMed(NCBI E-utilities) 客户端
+    compliance.py   AI 使用标注模板 + 提交前自查清单
+    extract.py      上传文档(Word/PDF/Excel/CSV/txt)抽取纯文本
+    formatting.py   导出 Word(.docx)
+    main.py         FastAPI 入口(也托管已构建的前端)
+  selftest.py       后端冒烟测试(mock 不花钱)
+  requirements.txt
+  .env.example
+frontend/       Vite + React 前端
+  src/
+    App.tsx         导航 + 合规横幅
+    modules/        五个模块界面
+    lib/            SSE 流式 + 运行 hook + 持久化
+    components/     Markdown / Dropzone / ResultPanel
+scripts/        安装与启动脚本
+启动基金助手.bat
+```
+
+## 快速开始（开发）
+
+一次性安装：
+
+```powershell
+# 在仓库根目录
+powershell -ExecutionPolicy Bypass -File scripts/setup.ps1
+```
+
+配置模型 key：复制 `backend/.env.example` 为 `backend/.env`，填入你的 DeepSeek（或硅基流动 / OpenAI / Anthropic）key。
+
+开发模式（前后端分别热更新）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/dev.ps1
+```
+
+单进程模式（先构建前端，由后端一并托管，最接近最终体验）：
+
+```powershell
+cd frontend; npm run build; cd ..
+# 双击 "启动基金助手.bat"，随后浏览器打开 http://127.0.0.1:8766
+```
+
+> 端口用 8766，与「科研助手」(8756) 错开，两者可同时运行。
+
+## 测试
+
+后端冒烟测试（mock 不花钱；real 花极少额度）：
+
+```powershell
+cd backend
+.venv/Scripts/python.exe selftest.py mock
+.venv/Scripts/python.exe selftest.py real
+```
