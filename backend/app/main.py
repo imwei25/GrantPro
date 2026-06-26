@@ -136,7 +136,7 @@ if _DIST.is_dir():
 def run_server():
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=settings.port)
+    uvicorn.run(app, host=settings.host, port=settings.port)
 
 
 if __name__ == "__main__":

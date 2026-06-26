@@ -22,6 +22,8 @@ class Settings:
     base_url: str = os.getenv("LLM_BASE_URL", "https://api.deepseek.com").strip().rstrip("/")
     model: str = os.getenv("LLM_MODEL", "deepseek-chat").strip()
     mock: bool = _bool("MOCK_LLM", False)
+    # 监听地址: 默认 127.0.0.1 仅本机可访问; 设为 0.0.0.0 则同局域网的其他设备也能访问。
+    host: str = os.getenv("HOST", "127.0.0.1").strip()
     port: int = int(os.getenv("PORT", "8766"))
     # 可选: 提供给 NCBI E-utilities 的联系邮箱(礼貌且可提高限速容忍度)
     ncbi_email: str = os.getenv("NCBI_EMAIL", "").strip()
