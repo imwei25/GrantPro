@@ -1,6 +1,7 @@
 import { useStream } from "../lib/useStream";
 import { usePersistentState } from "../lib/usePersistentState";
 import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
+import { EXAMPLES } from "../lib/examples";
 import ResultPanel from "../components/ResultPanel";
 import Dropzone from "../components/Dropzone";
 import type { Goto } from "../App";
@@ -25,6 +26,14 @@ export default function SchemeModule({ goto }: { goto: Goto }) {
     setObjective("");
     setResources("");
     setText("");
+  };
+
+  const fillExample = () => {
+    const e = EXAMPLES.scheme;
+    setIdea(e.idea);
+    setField(e.field);
+    setObjective(e.objective);
+    setResources(e.resources);
   };
 
   return (
@@ -87,6 +96,9 @@ export default function SchemeModule({ goto }: { goto: Goto }) {
         <div className="form-actions">
           <button className="btn-primary" onClick={submit} disabled={!idea.trim() || running} data-testid="run-btn" title="Ctrl / ⌘ + Enter 提交">
             {running ? "生成中…" : "生成研究方案"}
+          </button>
+          <button className="btn-ghost" onClick={fillExample} data-testid="example-btn">
+            填入示例
           </button>
           <button className="btn-ghost" onClick={reset} data-testid="reset-btn">
             清空

@@ -116,6 +116,20 @@ try {
   const refsText = await page.getByTestId("refs").innerText().catch(() => "");
   ok("[rationale] 参考文献含 Crossref 源", /Crossref/.test(refsText));
 
+  // ---- 填入示例: 一键填充示例输入, 必填项被填好且可直接运行 ----
+  await page.getByTestId("nav-critique").click();
+  await page.waitForTimeout(120);
+  await page.getByTestId("reset-btn").click();
+  await page.waitForTimeout(80);
+  await page.getByTestId("example-btn").click();
+  await page.waitForTimeout(120);
+  const exTitle = await page.getByTestId("input-title").inputValue().catch(() => "");
+  ok("填入示例填好必填项", exTitle.length > 0, exTitle.slice(0, 30));
+  ok("填入示例后运行按钮可用", await page.getByTestId("run-btn").isEnabled().catch(() => false));
+  // 运行一次, 既验证示例可直接用, 也恢复该节结果供后续"工作台汇总"断言
+  await page.getByTestId("run-btn").click();
+  await page.getByTestId("result-text").filter({ hasText: "[MOCK]" }).waitFor({ timeout: 15000 }).catch(() => {});
+
   // ---- 键盘提交: Ctrl+Enter 也能触发运行 ----
   await page.getByTestId("nav-polish").click();
   await page.waitForTimeout(150);

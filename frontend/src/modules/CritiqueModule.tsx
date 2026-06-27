@@ -1,6 +1,7 @@
 import { useStream } from "../lib/useStream";
 import { usePersistentState } from "../lib/usePersistentState";
 import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
+import { EXAMPLES } from "../lib/examples";
 import ResultPanel from "../components/ResultPanel";
 import Dropzone from "../components/Dropzone";
 import type { Goto } from "../App";
@@ -27,6 +28,15 @@ export default function CritiqueModule({ goto }: { goto: Goto }) {
     setInnovation("");
     setBackground("");
     setText("");
+  };
+
+  const fillExample = () => {
+    const e = EXAMPLES.critique;
+    setTitle(e.title);
+    setField(e.field);
+    setProblem(e.problem);
+    setInnovation(e.innovation);
+    setBackground(e.background);
   };
 
   return (
@@ -98,6 +108,9 @@ export default function CritiqueModule({ goto }: { goto: Goto }) {
         <div className="form-actions">
           <button className="btn-primary" onClick={submit} disabled={!title.trim() || running} data-testid="run-btn" title="Ctrl / ⌘ + Enter 提交">
             {running ? "诊断中…" : "开始选题诊断"}
+          </button>
+          <button className="btn-ghost" onClick={fillExample} data-testid="example-btn">
+            填入示例
           </button>
           <button className="btn-ghost" onClick={reset} data-testid="reset-btn">
             清空

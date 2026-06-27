@@ -1,6 +1,7 @@
 import { useStream } from "../lib/useStream";
 import { usePersistentState } from "../lib/usePersistentState";
 import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
+import { EXAMPLES } from "../lib/examples";
 import ResultPanel from "../components/ResultPanel";
 import ReviewRadar from "../components/ReviewRadar";
 import Dropzone from "../components/Dropzone";
@@ -21,6 +22,11 @@ export default function ReviewModule() {
     setTitle("");
     setText("");
     setResult("");
+  };
+
+  const fillExample = () => {
+    setTitle(EXAMPLES.review.title);
+    setText(EXAMPLES.review.text);
   };
 
   return (
@@ -61,6 +67,9 @@ export default function ReviewModule() {
         <div className="form-actions">
           <button className="btn-primary" onClick={submit} disabled={!text.trim() || running} data-testid="run-btn" title="Ctrl / ⌘ + Enter 提交">
             {running ? "评审中…" : "开始模拟评审"}
+          </button>
+          <button className="btn-ghost" onClick={fillExample} data-testid="example-btn">
+            填入示例
           </button>
           <button className="btn-ghost" onClick={reset} data-testid="reset-btn">
             清空

@@ -5,6 +5,7 @@ import Dropzone from "../components/Dropzone";
 import { downloadText, downloadDocx, tsName } from "../lib/download";
 import { usePersistentState } from "../lib/usePersistentState";
 import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
+import { EXAMPLES } from "../lib/examples";
 import type { Goto } from "../App";
 
 // 文献来源标签: 优先用后端给出的 source, 否则按 PMID/DOI 反推。
@@ -86,6 +87,12 @@ export default function RationaleModule({ goto }: { goto: Goto }) {
     setError(null);
   };
 
+  const fillExample = () => {
+    setField(EXAMPLES.rationale.field);
+    setKeywords(EXAMPLES.rationale.keywords);
+    setProblem(EXAMPLES.rationale.problem);
+  };
+
   return (
     <div className="module">
       <header className="module-head">
@@ -138,6 +145,9 @@ export default function RationaleModule({ goto }: { goto: Goto }) {
         <div className="form-actions">
           <button className="btn-primary" onClick={submit} disabled={!field.trim() || running} data-testid="run-btn" title="Ctrl / ⌘ + Enter 提交">
             {running ? "调研中…" : "检索文献并撰写立项依据"}
+          </button>
+          <button className="btn-ghost" onClick={fillExample} data-testid="example-btn">
+            填入示例
           </button>
           <button className="btn-ghost" onClick={reset} data-testid="reset-btn">
             清空

@@ -1,6 +1,7 @@
 import { useStream } from "../lib/useStream";
 import { usePersistentState } from "../lib/usePersistentState";
 import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
+import { EXAMPLES } from "../lib/examples";
 import ResultPanel from "../components/ResultPanel";
 import Dropzone from "../components/Dropzone";
 
@@ -19,6 +20,8 @@ export default function PolishModule() {
     setText("");
     setResult("");
   };
+
+  const fillExample = () => setText(EXAMPLES.polish.text);
 
   return (
     <div className="module">
@@ -52,6 +55,9 @@ export default function PolishModule() {
         <div className="form-actions">
           <button className="btn-primary" onClick={submit} disabled={!text.trim() || running} data-testid="run-btn" title="Ctrl / ⌘ + Enter 提交">
             {running ? "润色中…" : "润色并生成合规标注"}
+          </button>
+          <button className="btn-ghost" onClick={fillExample} data-testid="example-btn">
+            填入示例
           </button>
           <button className="btn-ghost" onClick={reset} data-testid="reset-btn">
             清空
