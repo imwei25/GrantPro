@@ -84,6 +84,14 @@ async def _stream_mock(messages: list[dict]) -> AsyncIterator[str]:
     for ch in reply:
         await asyncio.sleep(0)
         yield ch
+    # 研究方案模块的提示词要求产出 Mermaid 流程图; 演示模式附带一个示例,
+    # 让无密钥用户也能看到流程图渲染效果, 并供端到端测试验证。
+    wants_mermaid = any("Mermaid" in (m.get("content") or "") for m in messages)
+    if wants_mermaid:
+        demo = "\n\n```mermaid\nflowchart TD\n  A[研究构想] --> B[关键科学问题]\n  B --> C[技术路线]\n  C --> D[预期成果]\n```\n"
+        for ch in demo:
+            await asyncio.sleep(0)
+            yield ch
 
 
 # ----------------------------- OpenAI 格式 -----------------------------

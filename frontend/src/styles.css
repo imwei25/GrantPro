@@ -958,3 +958,32 @@ select:focus {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Mermaid 流程图(研究方案模块) */
+.markdown .mermaid {
+  display: block;
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--glass-line);
+  border-radius: 12px;
+  background: var(--panel-solid);
+  overflow-x: auto;
+  text-align: center;
+}
+.markdown .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+.markdown .mermaid-loading {
+  display: block;
+  margin: 16px 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--glass-line);
+  border-radius: 12px;
+  color: var(--ink-dim, #9fb0d0);
+  font-size: 13px;
+}
+.markdown .mermaid-fallback {
+  /* 渲染失败时回退为可复制的原始代码块 */
+  white-space: pre-wrap;
+}

@@ -82,3 +82,13 @@
 **已知遗留 bug：0。** 剩余可提方向均属"功能增强"而非缺陷修复，已记入下方候选，待确认是否继续：
 - T3/T8 Mermaid 流程图渲染：研究方案提示词产出 ```mermaid``` 代码块，前端目前显示原始代码（提示词原意是"便于绘图"，用户自行取用，未必算 bug）。渲染需引入 mermaid 依赖（约 +500KB 打包体积）。
 - T8 remark-gfm：渲染 GFM 表格/删除线/自动链接。但现有提示词产出以标题+分点为主、引用用显式 Markdown 链接，实际收益有限。
+
+---
+
+## 轮次 2（用户确认继续自主多轮）
+
+### [轮次 2 · T3/T8] Mermaid 流程图渲染
+- 现状/问题：研究方案提示词产出 ```mermaid``` 代码块，前端只显示原始代码，用户看不到流程图。
+- 改进：新增 `components/Mermaid.tsx`——动态 `import("mermaid")` 懒加载（独立 chunk，不拖累首屏）、`parse(suppressErrors)` 先校验（流式半成品/非法时回退原始代码，无控制台噪声）、`securityLevel: strict`、暗色主题；`Markdown.tsx` 接管 `code` 渲染 mermaid；`styles.css` 加流程图/加载/回退样式。演示模式 mock 在研究方案场景附带示例流程图（无密钥也能看到效果、可被 e2e 验证）。
+- 验证：build=✅（mermaid 代码分割为 634KB+ 懒加载 chunk，首屏 JS 不变）mock=✅ 单测=✅ 9/9+6/6 真实测试=✅ 23/23（新增"[scheme] Mermaid 流程图渲染为 SVG"，无 pageerror/console.error）。
+- 提交：见下方 commit。

@@ -60,6 +60,16 @@ try {
     }
     await page.waitForTimeout(300);
     ok(`[${mod.id}] 完成后有导出Word按钮`, await page.getByTestId("export-docx-btn").isVisible().catch(() => false));
+
+    // 研究方案: 演示模式输出含 ```mermaid``` 代码块, 应渲染成 SVG 流程图
+    if (mod.id === "scheme") {
+      let rendered = false;
+      try {
+        await page.getByTestId("mermaid").locator("svg").first().waitFor({ timeout: 15000 });
+        rendered = true;
+      } catch { /* 渲染失败会回退原始代码 */ }
+      ok("[scheme] Mermaid 流程图渲染为 SVG", rendered);
+    }
   }
 
   // ---- 复制按钮: 点击后应给出"已复制/复制失败"反馈, 不抛异常(局域网回退路径) ----
