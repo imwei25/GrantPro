@@ -41,7 +41,7 @@ export default function SchemeModule({ goto }: { goto: Goto }) {
       <header className="module-head">
         <span className="eyebrow">03 · DESIGN</span>
         <h1>研究方案</h1>
-        <p>把研究构想组织成层层对应的方案：研究目标—研究内容—关键科学问题—技术路线（含 Mermaid 流程图）—可行性。</p>
+        <p>把研究构想组织成层层对应的完整方案：研究目标—研究内容—关键科学问题—技术路线（含 Mermaid 流程图）—可行性—年度计划—预期成果。</p>
       </header>
 
       <div className="form">

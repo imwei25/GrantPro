@@ -28,6 +28,8 @@ def main() -> int:
         ("不含废止的四类标记 A 鼓励", "A 鼓励" not in critique),
         # 其余模块仍能正常构建
         ("scheme 含技术路线", "技术路线" in _system("scheme", {"idea": "x"})),
+        ("scheme 含年度研究计划", "年度研究计划" in _system("scheme", {"idea": "x"})),
+        ("scheme 含预期研究结果", "预期研究结果" in _system("scheme", {"idea": "x"})),
         ("review 含评审", "评审" in _system("review", {"text": "x"})),
         ("review 含评分汇总", "评分汇总" in _system("review", {"text": "x"})),
         ("review 含共识弱点", "共识弱点" in _system("review", {"text": "x"})),
