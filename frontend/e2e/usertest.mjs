@@ -183,6 +183,16 @@ try {
   ok("汇总 MD 含模块标题", /# 选题诊断/.test(mdContent) && /# 立项依据/.test(mdContent));
   ok("汇总 MD 末尾附 AI 使用标注", /# 生成式 AI 使用标注/.test(mdContent) && /【生成式人工智能使用说明】/.test(mdContent));
 
+  // 送全文去评审模拟: 应跳到评审模块且输入框被装配好的内容预填
+  await page.getByTestId("send-all-review-btn").click();
+  await page.waitForTimeout(200);
+  const reviewInput = await page.getByTestId("input-text").inputValue().catch(() => "");
+  ok("送全文跳到评审且预填内容", reviewInput.includes("立项依据") || reviewInput.includes("研究方案"), `${reviewInput.length} 字`);
+
+  // 回首页继续清空全部测试
+  await page.getByTestId("brand").click();
+  await page.waitForTimeout(250);
+
   // 清空全部: 需二次确认; 确认后工作台消失
   await page.getByTestId("clear-all-btn").click();
   const confirmLabel = await page.getByTestId("clear-all-btn").innerText().catch(() => "");

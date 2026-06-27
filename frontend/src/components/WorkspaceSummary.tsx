@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { readPersisted } from "../lib/usePersistentState";
+import { readPersisted, writePersisted } from "../lib/usePersistentState";
 import { downloadText, downloadDocx, tsName } from "../lib/download";
 import { apiUrl } from "../lib/api";
 import type { Reference } from "../lib/sse";
@@ -96,6 +96,14 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
       : body;
   };
 
+  // 把"申请书实质内容"各节(排除评审模拟这一元节点)汇成整体, 送去评审模拟。
+  const reviewable = filled.filter((f) => f.id !== "review");
+  const sendToReview = () => {
+    const body = reviewable.map((f) => `## ${f.title}\n\n${f.body}`).join("\n\n");
+    writePersisted("review:text", body);
+    onPick("review");
+  };
+
   const exportMd = () => downloadText(tsName("国自然申请材料汇总", "md"), compose());
   const exportDocx = async () => {
     setErr("");
@@ -131,6 +139,11 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
         <button className="btn-ghost" onClick={exportMd} data-testid="export-all-md-btn">
           汇总导出 Markdown
         </button>
+        {reviewable.length > 0 && (
+          <button className="btn-ghost" onClick={sendToReview} data-testid="send-all-review-btn">
+            送全文去评审模拟
+          </button>
+        )}
         <button
           className={`btn-ghost ws-clear ${confirmClear ? "danger" : ""}`}
           onClick={clearAll}
