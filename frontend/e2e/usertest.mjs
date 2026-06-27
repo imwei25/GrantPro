@@ -108,6 +108,23 @@ try {
   ok("[rationale] 出现引用核验区", await page.getByTestId("verify").isVisible().catch(() => false));
   ok("[rationale] 完成后有导出Word按钮", await page.getByTestId("export-docx-btn").isVisible().catch(() => false));
 
+  // ---- 工作台汇总: 回首页, 已完成各节应可一键汇总导出 ----
+  await page.getByTestId("brand").click().catch(() => {});
+  await page.waitForTimeout(300);
+  ok("工作台汇总出现", await page.getByTestId("workspace").isVisible().catch(() => false));
+  const wsCount = await page.getByTestId("workspace-list").locator("li").count().catch(() => 0);
+  ok("汇总含已完成各节", wsCount >= 5, `共 ${wsCount} 节`);
+  let dlOk = false;
+  try {
+    const [dl] = await Promise.all([
+      page.waitForEvent("download", { timeout: 8000 }),
+      page.getByTestId("export-all-docx-btn").click(),
+    ]);
+    dlOk = /汇总.*\.docx$/.test(dl.suggestedFilename());
+  } catch { /* 下载未触发 */ }
+  ok("汇总导出 Word 触发下载", dlOk);
+  ok("汇总导出无错误提示", !(await page.getByTestId("workspace-error").isVisible().catch(() => false)));
+
   // ---- 全局: 无 JS 报错 ----
   ok("无 pageerror", pageErrors.length === 0, pageErrors.join(" | ").slice(0, 200));
   ok("无 console.error", consoleErrors.length === 0, consoleErrors.join(" | ").slice(0, 200));

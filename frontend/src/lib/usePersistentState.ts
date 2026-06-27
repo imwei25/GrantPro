@@ -9,6 +9,16 @@ export function writePersisted(key: string, value: unknown): void {
   }
 }
 
+// 直接读取持久化存储(供"工作台汇总"等跨模块汇总读取各模块结果)。
+export function readPersisted<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(`nsfc:${key}`);
+    return raw !== null ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 // 与 useState 用法一致, 但自动把值同步到 localStorage,
 // 用于在切换模块/重开浏览器后保留用户的输入与结果。
 export function usePersistentState<T>(key: string, initial: T): [T, (v: T | ((p: T) => T)) => void] {
