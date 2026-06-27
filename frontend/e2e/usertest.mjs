@@ -6,6 +6,7 @@
 //
 // 退出码 0 = 全通过; 非 0 = 有失败项(详见输出)。
 import pw from "playwright";
+import fs from "node:fs";
 const { chromium } = pw;
 
 const BASE = process.env.BASE_URL || "http://127.0.0.1:8766";
@@ -143,6 +144,18 @@ try {
   } catch { /* 下载未触发 */ }
   ok("汇总导出 Word 触发下载", dlOk);
   ok("汇总导出无错误提示", !(await page.getByTestId("workspace-error").isVisible().catch(() => false)));
+
+  // 汇总导出 Markdown: 读取下载文件, 应含各节标题与自动附的 AI 使用标注
+  let mdContent = "";
+  try {
+    const [mdDl] = await Promise.all([
+      page.waitForEvent("download", { timeout: 8000 }),
+      page.getByTestId("export-all-md-btn").click(),
+    ]);
+    mdContent = fs.readFileSync(await mdDl.path(), "utf-8");
+  } catch { /* 下载失败 */ }
+  ok("汇总 MD 含模块标题", /# 选题诊断/.test(mdContent) && /# 立项依据/.test(mdContent));
+  ok("汇总 MD 末尾附 AI 使用标注", /# 生成式 AI 使用标注/.test(mdContent) && /【生成式人工智能使用说明】/.test(mdContent));
 
   // 清空全部: 需二次确认; 确认后工作台消失
   await page.getByTestId("clear-all-btn").click();

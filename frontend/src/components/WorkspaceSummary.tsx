@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { readPersisted } from "../lib/usePersistentState";
 import { downloadText, downloadDocx, tsName } from "../lib/download";
+import { apiUrl } from "../lib/api";
 import type { Reference } from "../lib/sse";
 import type { ModuleId } from "../App";
 
@@ -46,6 +47,23 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
   const [filled, setFilled] = useState<Filled[]>(collect);
   const [err, setErr] = useState("");
   const [confirmClear, setConfirmClear] = useState(false);
+  // 汇总稿末尾自动附"生成式 AI 使用标注"(基金委要求材料附标识), 取自后端模板。
+  const [annotation, setAnnotation] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(apiUrl("/api/compliance"))
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled) setAnnotation(d.annotation || "");
+      })
+      .catch(() => {
+        /* 后端未就绪时静默, 不影响导出(只是不附标注) */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (filled.length === 0) return null;
 
@@ -70,8 +88,13 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
     setFilled([]);
   };
 
-  const compose = () =>
-    filled.map((f) => `# ${f.title}\n\n${f.body}`).join("\n\n---\n\n");
+  const compose = () => {
+    const body = filled.map((f) => `# ${f.title}\n\n${f.body}`).join("\n\n---\n\n");
+    // 末尾附 AI 使用标注(据实修改后采用); 取不到模板时不附。
+    return annotation
+      ? `${body}\n\n---\n\n# 生成式 AI 使用标注\n\n${annotation}`
+      : body;
+  };
 
   const exportMd = () => downloadText(tsName("国自然申请材料汇总", "md"), compose());
   const exportDocx = async () => {
@@ -85,7 +108,7 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
       <div className="workspace-head">
         <span className="workspace-title">工作台汇总</span>
         <span className="workspace-sub">
-          已完成 {filled.length} / {SECTIONS.length} 节，可汇总成一份完整材料导出
+          已完成 {filled.length} / {SECTIONS.length} 节，可汇总成一份完整材料导出（末尾自动附 AI 使用标注）
         </span>
       </div>
 
