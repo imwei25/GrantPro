@@ -86,6 +86,9 @@ try {
       ok("[review] 评分汇总渲染为 <table>", hasTable);
       const txt = await page.getByTestId("result-text").innerText();
       ok("[review] 含五维度评分", /科学问题凝练/.test(txt) && /共识弱点/.test(txt));
+      // 评分汇总表应被解析成 SVG 雷达图
+      const radarOk = await page.getByTestId("review-radar").locator("svg polygon.radar-data").first().isVisible().catch(() => false);
+      ok("[review] 评分雷达图渲染", radarOk);
     }
   }
 

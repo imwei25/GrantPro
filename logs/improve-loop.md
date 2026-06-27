@@ -246,4 +246,14 @@
 - 现状/问题：上一轮已加 Crossref；可再补 Semantic Scholar 扩大覆盖，但其 keyless 共享池基本不可用。
 - 改进：`literature.py` 新增 `semantic_scholar_search()`（标识优先级 DOI>PMID>paperId，带 `x-api-key`），`_throttled_get` 支持自定义 headers；`_default_sources()` 仅在配置 `S2_API_KEY` 时才纳入该源（默认无 key 即跳过，零影响、不刷 429）；config 增 `S2_API_KEY`，`.env.example` 注明 keyless 不可用。references 负载补 `source`，前端按真实来源显示标签（PubMed/Crossref/Semantic Scholar，修正了 S2 带 DOI 被误标 Crossref 的问题）。
 - 验证：mock=✅ 单测=✅ `test_literature` 24/24（S2 解析三类标识/跳过无标题/带 x-api-key/有无 key 的源门控）+ test_rationale 8/8 真实测试=✅ 36/36。S2 实时路径需免费 key（环境无 key）；端点实测返回 429（说明 URL/参数有效、仅限流），默认门控关闭故对用户零风险。
+- 提交：`871909c`
+
+---
+
+## 轮次 7（用户设定每 30 分钟自动跑；本轮为立即执行）
+
+### [轮次 7 · T4] 评审评分雷达图（纯前端 SVG，无依赖）
+- 现状/问题：上一轮加了"评分汇总"表，但只是表格；竞品（Granted AI 等）用可视化更直观。
+- 改进：新增 `components/ReviewRadar.tsx`——从评审输出的"评分汇总"表解析五维度评级（优=4/良=3/中=2/差=1，三评审取均分），用纯 SVG 画雷达图（网格+轴+标签+数据多边形）；解析不到≥3 维度则优雅隐藏（兼容真实 LLM 不规范输出）；接入 `ReviewModule`（结果完成后显示）；配套样式。
+- 验证：build=✅ 真实测试=✅ 37/37（新增"[review] 评分雷达图渲染"，断言 `polygon.radar-data` 可见）；桌面截图确认五边形雷达视觉效果。
 - 提交：见下方 commit。

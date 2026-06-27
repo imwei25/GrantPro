@@ -2,6 +2,7 @@ import { useStream } from "../lib/useStream";
 import { usePersistentState } from "../lib/usePersistentState";
 import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
 import ResultPanel from "../components/ResultPanel";
+import ReviewRadar from "../components/ReviewRadar";
 import Dropzone from "../components/Dropzone";
 
 export default function ReviewModule() {
@@ -66,6 +67,8 @@ export default function ReviewModule() {
           </button>
         </div>
       </div>
+
+      {!running && result && <ReviewRadar text={result} />}
 
       <ResultPanel
         text={result}

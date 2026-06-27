@@ -1150,6 +1150,47 @@ select:focus {
   padding: 12px 14px;
 }
 
+/* 评审评分雷达图 */
+.review-radar {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid var(--glass-line);
+  border-radius: 14px;
+  background: var(--panel);
+  text-align: center;
+}
+.review-radar .radar-title {
+  font-size: 13px;
+  color: var(--ink-dim, #9fb0d0);
+  margin-bottom: 4px;
+}
+.review-radar svg {
+  width: 280px;
+  max-width: 100%;
+  height: auto;
+}
+.radar-grid {
+  fill: none;
+  stroke: var(--glass-line);
+  stroke-width: 1;
+}
+.radar-axis {
+  stroke: var(--glass-line);
+  stroke-width: 1;
+}
+.radar-label {
+  fill: var(--ink-dim, #9fb0d0);
+  font-size: 11px;
+}
+.radar-data {
+  fill: rgba(110, 139, 255, 0.25);
+  stroke: #6e8bff;
+  stroke-width: 2;
+}
+.radar-dot {
+  fill: #35e0d0;
+}
+
 /* GFM 表格(评审模拟等模块可能产出对比表) */
 .markdown table {
   width: 100%;
