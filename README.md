@@ -6,7 +6,7 @@
 | 模块 | 作用 |
 |---|---|
 | 💡 选题诊断 | 以评审专家视角评估创新性、归类研究属性（自由探索类 / 目标导向类）、挑出最可能被毙的硬伤 |
-| 📚 立项依据 | **实际检索 PubMed 真实文献**，据此撰写立项依据草稿，引用可点击并**自动核验有无编造文献** |
+| 📚 立项依据 | **实际检索 PubMed + Crossref 真实文献**（覆盖全学科），据此撰写立项依据草稿，引用可点击并**自动核验有无编造文献** |
 | 🗺️ 研究方案 | 把构想组织成「研究目标—研究内容—关键科学问题—技术路线（含 Mermaid 图）—可行性」 |
 | 🧐 评审模拟 | 三位不同背景评审（同行 / 交叉 / 挑刺型）独立打分、挑刺，汇总致命问题 |
 | ✍️ 润色合规 | 润色为规范基金书面语，并生成符合基金委要求的**「生成式 AI 使用标注」** |
@@ -25,14 +25,14 @@
                                       ▼
                          本地 sidecar (Python FastAPI)
                           · LLM 适配层 (OpenAI/Anthropic 格式 + mock + 自动降级)
-                          · 立项依据: PubMed 检索 + 文献接地 + 引用核验
+                          · 立项依据: PubMed + Crossref 检索 + 文献接地 + 引用核验
                           · 合规模块: AI 使用标注模板 + 提交前自查清单
 ```
 
 设计原则（沿用「科研助手」的成熟做法）：
 - **双格式兼容**：通过 `LLM_PROVIDER` 在 OpenAI 兼容格式（DeepSeek / 硅基流动 / OpenAI）与 Anthropic 格式间切换，改 `backend/.env` 一处即可。
 - **自动降级**：主供应商余额不足/配额超限时，自动切到 `FALLBACK_*` 备用供应商继续。
-- **文献接地、反幻觉**：立项依据基于真实 PubMed 文献撰写，正文生成后回查每个引用，标出疑似编造，直击国自然“禁止编造文献”红线。
+- **文献接地、反幻觉**：立项依据基于真实 PubMed + Crossref 文献（覆盖全学科）撰写，正文生成后回查每个 PMID/DOI 引用，标出疑似编造，直击国自然“禁止编造文献”红线。
 - **合规内建**：每个模块的提示词都强调“辅助而非代写”，并内置 AI 使用标注与自查清单。
 - **本地优先**：所有处理在本机 sidecar 完成，仅模型调用走你自己的 API。
 
@@ -45,7 +45,7 @@ backend/        Python sidecar
     llm.py          LLM 适配层(OpenAI/Anthropic/mock + 自动降级)
     prompts.py      四个文本模块的提示词(选题诊断/研究方案/评审模拟/润色合规)
     rationale.py    立项依据: PubMed 接地 + 引用核验
-    literature.py   PubMed(NCBI E-utilities) 客户端
+    literature.py   文献检索客户端(PubMed + Crossref)
     compliance.py   AI 使用标注模板 + 提交前自查清单
     extract.py      上传文档(Word/PDF/Excel/CSV/txt)抽取纯文本
     formatting.py   导出 Word(.docx, 支持 Markdown 链接/加粗)

@@ -224,4 +224,14 @@
 - 现状/问题：立项依据只检索 PubMed（生物医学为主）；国自然占多数的非医学学科（材料/物理/化学/工程/生态）几乎检索不到文献，文献接地形同虚设。
 - 改进：`literature.py` 新增 `crossref_search()`（全学科、免费、无需 key，礼貌池带 mailto），与 PubMed 同构 schema（用 DOI 作标识）；`search_literature` 重构为多源检索 + 按标题归一跨源去重（PubMed 优先）；PubMed 记录补 DOI 提取。`rationale.py` 文案/引用核验改为同时支持 PMID+DOI，并把核验逻辑抽成可测的 `verify_citations()`；references 负载带 `doi`、`source`。前端 `Reference` 加 `doi`、参考文献标注来源（PubMed/Crossref）、未核验项按 DOI/PMID 智能链接。
 - 验证：mock=✅ 单测=✅ `test_literature` 16/16（Crossref 解析/去 JATS/空年份防 None/跨源去重）+ 新增 `test_rationale` 8/8（PMID/DOI 大小写、真假混合核验）真实测试=✅ 36/36（"参考文献含 Crossref 源"）。**真实 Crossref API 实测**：以"perovskite solar cell""graphene oxide membrane"等非医学查询返回真实带 DOI 论文（PubMed 搜不到），证明覆盖面扩展生效。
-- 提交：见下方 commit。
+- 提交：`2dd3c25`（含 README/使用说明 同步多文献源）
+
+---
+
+## ✅ 轮次 5 收敛
+
+收敛验证全绿：mock `[OK]`、test_prompts 14/14、test_formatting 9/9、test_literature 16/16、test_rationale 8/8、e2e **36/36**；真实 Crossref API 实测通过。
+
+五轮累计 **17 个方向**；后端测试 5 个文件、e2e 36 项；**已知遗留 bug 仍为 0**。本轮去掉了"立项依据只对生物医学有效"的硬限制。
+
+剩余候选（同前，成本/数据门槛较高）：相似已立项项目查重、指南条目解析完成度清单、Semantic Scholar 第三源、评审打分 JSON 化 + 雷达图、待核实的 2026 三板块导出模板。
