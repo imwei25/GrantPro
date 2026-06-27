@@ -1,7 +1,7 @@
 # 国自然基金申请助手
 
 面向科研人员的 AI 辅助**国家自然科学基金（NSFC）申请书**写作桌面应用。
-五大能力，覆盖从选题到成稿的关键环节：
+六大能力，覆盖从选题到成稿的关键环节：
 
 | 模块 | 作用 |
 |---|---|
@@ -10,6 +10,7 @@
 | 🗺️ 研究方案 | 把构想组织成「研究目标—研究内容—关键科学问题—技术路线（含 Mermaid 图）—可行性」 |
 | 🧐 评审模拟 | 三位不同背景评审（同行 / 交叉 / 挑刺型）独立打分、挑刺，汇总致命问题 |
 | ✍️ 润色合规 | 润色为规范基金书面语，并生成符合基金委要求的**「生成式 AI 使用标注」** |
+| 📝 项目摘要 | 从已完成的各节内容**反向凝练**出项目摘要 + 关键词（中英），NSFC 必填项 |
 
 > 首页提供**工作台汇总**：把已完成的各节一键汇总导出为完整 Word/Markdown；并内置**提交前合规自查清单**与 AI 使用标注模板。各模块支持 **Ctrl/⌘+Enter** 提交。
 
@@ -58,7 +59,7 @@ backend/        Python sidecar
 frontend/       Vite + React 前端
   src/
     App.tsx         导航 + 合规横幅
-    modules/        五个模块界面
+    modules/        六个模块界面
     lib/            SSE 流式 + 运行 hook + 持久化 + 剪贴板/下载
     components/     Markdown(GFM+Mermaid) / Dropzone / ResultPanel / Mermaid
   e2e/            Playwright 端到端"真实用户"测试
@@ -127,7 +128,7 @@ cd backend
 .venv/Scripts/python.exe test_literature.py    # PubMed: 限速/429 重试/api_key
 ```
 
-端到端「真实用户」测试（Playwright 驱动真实 Chromium 走通五大模块，MOCK 模式不花钱）：
+端到端「真实用户」测试（Playwright 驱动真实 Chromium 走通六大模块，MOCK 模式不花钱）：
 
 ```powershell
 # 一键: 构建前端 → 以 MOCK 起后端 → 跑 Playwright → 收尾停服务
