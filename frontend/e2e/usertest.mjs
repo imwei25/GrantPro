@@ -137,6 +137,14 @@ try {
   ok("汇总导出 Word 触发下载", dlOk);
   ok("汇总导出无错误提示", !(await page.getByTestId("workspace-error").isVisible().catch(() => false)));
 
+  // 清空全部: 需二次确认; 确认后工作台消失
+  await page.getByTestId("clear-all-btn").click();
+  const confirmLabel = await page.getByTestId("clear-all-btn").innerText().catch(() => "");
+  ok("清空全部需二次确认", /确认清空/.test(confirmLabel), confirmLabel);
+  await page.getByTestId("clear-all-btn").click();
+  await page.waitForTimeout(200);
+  ok("确认后工作台清空消失", !(await page.getByTestId("workspace").isVisible().catch(() => false)));
+
   // ---- 全局: 无 JS 报错 ----
   ok("无 pageerror", pageErrors.length === 0, pageErrors.join(" | ").slice(0, 200));
   ok("无 console.error", consoleErrors.length === 0, consoleErrors.join(" | ").slice(0, 200));

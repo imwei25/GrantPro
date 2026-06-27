@@ -43,10 +43,32 @@ function collect(): Filled[] {
 
 export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => void }) {
   // 进入首页时读取一次当前各模块结果(返回首页会重新挂载, 自动刷新)。
-  const [filled] = useState<Filled[]>(collect);
+  const [filled, setFilled] = useState<Filled[]>(collect);
   const [err, setErr] = useState("");
+  const [confirmClear, setConfirmClear] = useState(false);
 
   if (filled.length === 0) return null;
+
+  // 清空全部工作台(各模块的输入与结果), 用于开始一份新的申请。
+  // 二次确认避免误删; 清掉所有 nsfc: 前缀的持久化键。
+  const clearAll = () => {
+    if (!confirmClear) {
+      setConfirmClear(true);
+      setTimeout(() => setConfirmClear(false), 3000);
+      return;
+    }
+    try {
+      const keys: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith("nsfc:")) keys.push(k);
+      }
+      keys.forEach((k) => localStorage.removeItem(k));
+    } catch {
+      /* 忽略 */
+    }
+    setFilled([]);
+  };
 
   const compose = () =>
     filled.map((f) => `# ${f.title}\n\n${f.body}`).join("\n\n---\n\n");
@@ -85,6 +107,13 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
         </button>
         <button className="btn-ghost" onClick={exportMd} data-testid="export-all-md-btn">
           汇总导出 Markdown
+        </button>
+        <button
+          className={`btn-ghost ws-clear ${confirmClear ? "danger" : ""}`}
+          onClick={clearAll}
+          data-testid="clear-all-btn"
+        >
+          {confirmClear ? "确认清空？（不可恢复）" : "清空全部 / 新建申请"}
         </button>
       </div>
       {err && <div className="result-error" data-testid="workspace-error">{err}</div>}

@@ -1054,6 +1054,13 @@ select:focus {
   gap: 10px;
   flex-wrap: wrap;
 }
+.ws-clear {
+  margin-left: auto;
+}
+.ws-clear.danger {
+  color: #ff8a8a;
+  border-color: rgba(255, 138, 138, 0.5);
+}
 
 /* 提交前合规自查面板(首页) */
 .compliance-panel {
