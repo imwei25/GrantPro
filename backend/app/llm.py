@@ -92,11 +92,14 @@ async def _stream_mock(messages: list[dict]) -> AsyncIterator[str]:
         for ch in demo:
             await asyncio.sleep(0)
             yield ch
-    # 评审模拟模块产出常含对比表; 演示模式附带一个 GFM 表格, 展示表格渲染并供测试。
+    # 评审模拟模块产出含"评分汇总"表; 演示模式附带一个 GFM 表格, 展示渲染并供测试。
     if "模拟器" in sys_text:
         demo = (
-            "\n\n| 评审 | 等级 | 是否资助 |\n| --- | --- | --- |\n"
-            "| 同行专家 | 良 | 建议资助 |\n| 挑刺型 | 中 | 需重大修改 |\n"
+            "\n\n## 评分汇总\n"
+            "| 维度 | 评审一 | 评审二 | 评审三 |\n| --- | --- | --- | --- |\n"
+            "| 科学问题凝练 | 良 | 中 | 良 |\n| 创新性 | 良 | 良 | 中 |\n"
+            "| 研究基础 | 优 | 良 | 良 |\n| 方案可行性 | 中 | 中 | 良 |\n| 写作规范 | 良 | 良 | 优 |\n"
+            "\n## 共识弱点（按严重度排序）\n1. [MOCK] 科学问题不够聚焦——建议优先收敛到一个核心问题。\n"
         )
         for ch in demo:
             await asyncio.sleep(0)

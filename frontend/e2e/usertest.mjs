@@ -80,10 +80,12 @@ try {
       } catch { /* 渲染失败会回退原始代码 */ }
       ok("[scheme] Mermaid 流程图渲染为 SVG", rendered);
     }
-    // 评审模拟: 演示模式输出含 GFM 表格, remark-gfm 应渲染为 <table>
+    // 评审模拟: 演示模式输出"评分汇总"GFM 表格, remark-gfm 应渲染为 <table>
     if (mod.id === "review") {
       const hasTable = (await page.getByTestId("result-text").locator("table").count()) > 0;
-      ok("[review] GFM 表格渲染为 <table>", hasTable);
+      ok("[review] 评分汇总渲染为 <table>", hasTable);
+      const txt = await page.getByTestId("result-text").innerText();
+      ok("[review] 含五维度评分", /科学问题凝练/.test(txt) && /共识弱点/.test(txt));
     }
   }
 

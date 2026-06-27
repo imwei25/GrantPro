@@ -28,6 +28,12 @@ def main() -> int:
         # 其余模块仍能正常构建
         ("scheme 含技术路线", "技术路线" in _system("scheme", {"idea": "x"})),
         ("review 含评审", "评审" in _system("review", {"text": "x"})),
+        ("review 含评分汇总", "评分汇总" in _system("review", {"text": "x"})),
+        ("review 含共识弱点", "共识弱点" in _system("review", {"text": "x"})),
+        ("review 含五维度", all(
+            d in _system("review", {"text": "x"})
+            for d in ("科学问题凝练", "创新性", "研究基础", "方案可行性", "写作规范")
+        )),
         ("polish 含标注", "标注" in _system("polish", {"text": "x"})),
         # AI 使用标注: 披露名称/版本/使用时间, 含起止标识, 声明未直接生成整段材料
         ("标注含使用时间", "使用时间" in build_annotation()),
