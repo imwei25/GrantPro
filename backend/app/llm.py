@@ -84,11 +84,20 @@ async def _stream_mock(messages: list[dict]) -> AsyncIterator[str]:
     for ch in reply:
         await asyncio.sleep(0)
         yield ch
+    sys_text = " ".join(m.get("content") or "" for m in messages if m.get("role") == "system")
     # 研究方案模块的提示词要求产出 Mermaid 流程图; 演示模式附带一个示例,
     # 让无密钥用户也能看到流程图渲染效果, 并供端到端测试验证。
-    wants_mermaid = any("Mermaid" in (m.get("content") or "") for m in messages)
-    if wants_mermaid:
+    if "Mermaid" in sys_text:
         demo = "\n\n```mermaid\nflowchart TD\n  A[研究构想] --> B[关键科学问题]\n  B --> C[技术路线]\n  C --> D[预期成果]\n```\n"
+        for ch in demo:
+            await asyncio.sleep(0)
+            yield ch
+    # 评审模拟模块产出常含对比表; 演示模式附带一个 GFM 表格, 展示表格渲染并供测试。
+    if "模拟器" in sys_text:
+        demo = (
+            "\n\n| 评审 | 等级 | 是否资助 |\n| --- | --- | --- |\n"
+            "| 同行专家 | 良 | 建议资助 |\n| 挑刺型 | 中 | 需重大修改 |\n"
+        )
         for ch in demo:
             await asyncio.sleep(0)
             yield ch

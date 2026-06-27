@@ -987,3 +987,21 @@ select:focus {
   /* 渲染失败时回退为可复制的原始代码块 */
   white-space: pre-wrap;
 }
+
+/* GFM 表格(评审模拟等模块可能产出对比表) */
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid var(--glass-line);
+  padding: 8px 12px;
+  text-align: left;
+}
+.markdown thead th {
+  background: var(--panel-solid);
+  font-weight: 600;
+}

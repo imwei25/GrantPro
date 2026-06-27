@@ -91,4 +91,10 @@
 - 现状/问题：研究方案提示词产出 ```mermaid``` 代码块，前端只显示原始代码，用户看不到流程图。
 - 改进：新增 `components/Mermaid.tsx`——动态 `import("mermaid")` 懒加载（独立 chunk，不拖累首屏）、`parse(suppressErrors)` 先校验（流式半成品/非法时回退原始代码，无控制台噪声）、`securityLevel: strict`、暗色主题；`Markdown.tsx` 接管 `code` 渲染 mermaid；`styles.css` 加流程图/加载/回退样式。演示模式 mock 在研究方案场景附带示例流程图（无密钥也能看到效果、可被 e2e 验证）。
 - 验证：build=✅（mermaid 代码分割为 634KB+ 懒加载 chunk，首屏 JS 不变）mock=✅ 单测=✅ 9/9+6/6 真实测试=✅ 23/23（新增"[scheme] Mermaid 流程图渲染为 SVG"，无 pageerror/console.error）。
+- 提交：`c7caa2c`
+
+### [轮次 2 · T8] remark-gfm：表格 / 删除线 / 自动链接
+- 现状/问题：react-markdown 默认不支持 GFM，模型若产出 Markdown 表格会渲染成一行纯文本（错乱），裸 URL 也不可点击。
+- 改进：`Markdown.tsx` 接入 `remark-gfm`；`styles.css` 加表格样式；演示模式 mock 在评审模拟场景附带一个 GFM 表格（展示渲染、可被 e2e 验证）。
+- 验证：build=✅ mock=✅ 真实测试=✅ 24/24（新增"[review] GFM 表格渲染为 <table>"，无 pageerror/console.error）。
 - 提交：见下方 commit。

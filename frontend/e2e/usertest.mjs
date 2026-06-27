@@ -70,6 +70,11 @@ try {
       } catch { /* 渲染失败会回退原始代码 */ }
       ok("[scheme] Mermaid 流程图渲染为 SVG", rendered);
     }
+    // 评审模拟: 演示模式输出含 GFM 表格, remark-gfm 应渲染为 <table>
+    if (mod.id === "review") {
+      const hasTable = (await page.getByTestId("result-text").locator("table").count()) > 0;
+      ok("[review] GFM 表格渲染为 <table>", hasTable);
+    }
   }
 
   // ---- 复制按钮: 点击后应给出"已复制/复制失败"反馈, 不抛异常(局域网回退路径) ----
