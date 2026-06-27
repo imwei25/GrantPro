@@ -988,6 +988,85 @@ select:focus {
   white-space: pre-wrap;
 }
 
+/* 提交前合规自查面板(首页) */
+.compliance-panel {
+  margin-top: 22px;
+  border: 1px solid var(--glass-line);
+  border-radius: 14px;
+  background: var(--panel);
+  padding: 4px 18px;
+}
+.compliance-panel > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 14px 0;
+  font-size: 14px;
+  color: var(--ink-dim, #9fb0d0);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.compliance-panel > summary::-webkit-details-marker {
+  display: none;
+}
+.compliance-panel .cp-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #35e0d0;
+  border: 1px solid rgba(53, 224, 208, 0.4);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+.cp-checklist {
+  list-style: none;
+  margin: 6px 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.cp-checklist li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink, #d7e1f4);
+}
+.cp-checklist .cp-box {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  border: 1.5px solid var(--glass-line-strong);
+  border-radius: 4px;
+}
+.cp-annotation {
+  border-top: 1px solid var(--glass-line);
+  padding: 14px 0 16px;
+}
+.cp-annotation-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.cp-annotation-title {
+  font-size: 13px;
+  color: var(--ink-dim, #9fb0d0);
+}
+.cp-annotation-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink, #d7e1f4);
+  background: var(--panel-solid);
+  border: 1px solid var(--glass-line);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
 /* GFM 表格(评审模拟等模块可能产出对比表) */
 .markdown table {
   width: 100%;

@@ -103,4 +103,10 @@
 - 现状/问题：本轮新增的 Playwright e2e、后端离线单测、`scripts/usertest.ps1`、`npm run test:e2e`、Mermaid/GFM 等均未反映在 README，「测试」小节只剩 selftest，文档与现状不一致。
 - 改进：README 目录结构补 `test_formatting.py`/`test_literature.py`/`e2e/`/`Mermaid` 等；「测试」小节新增后端离线单测与一键 e2e（`scripts/usertest.ps1` / `npm run test:e2e`）的用法。
 - 验证：真实测试=✅ 实跑文档承诺的 `scripts/usertest.ps1` 一键流程，构建→MOCK 起后端→Playwright 24/24→停服务→`E2E PASSED`，路径属实。
+- 提交：`4514e77`
+
+### [轮次 2 · T5/T8] 接通合规自查清单 + AI 标注模板到首页
+- 现状/问题：后端 `/api/compliance` 提供 6 条"提交前自查清单"与可复制的 AI 使用标注模板，但前端从不调用，这份与"合规第一"定位直接相关的内容用户完全看不到（半成品/死端点）。
+- 改进：新增 `components/CompliancePanel.tsx`——拉取 `/api/compliance`，以可折叠面板展示自查清单（逐条对照红线）与标注模板（复用 `copyText` 一键复制、有反馈）；接入首页流水线下方；`styles.css` 配套样式。e2e 加面板/清单/复制断言。
+- 验证：build=✅ 真实测试=✅ 27/27（新增"合规自查面板存在/自查清单6条/标注模板可复制"，无 pageerror/console.error）。
 - 提交：见下方 commit。

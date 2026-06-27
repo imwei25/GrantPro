@@ -33,6 +33,16 @@ try {
   const statusText = await page.getByTestId("status").innerText().catch(() => "");
   ok("状态显示演示模式(MOCK)", /演示模式|MOCK/.test(statusText), statusText.replace(/\s+/g, " "));
 
+  // 合规自查面板: 拉取 /api/compliance 并展示清单(展开后)
+  ok("合规自查面板存在", await page.getByTestId("compliance-panel").isVisible().catch(() => false));
+  await page.getByTestId("compliance-panel").locator("summary").click().catch(() => {});
+  const checkCount = await page.getByTestId("compliance-checklist").locator("li").count().catch(() => 0);
+  ok("自查清单有条目", checkCount >= 5, `共 ${checkCount} 条`);
+  await page.getByTestId("copy-annotation-btn").click().catch(() => {});
+  await page.waitForTimeout(150);
+  const annoLabel = await page.getByTestId("copy-annotation-btn").innerText().catch(() => "");
+  ok("标注模板可复制(有反馈)", /已复制|复制失败/.test(annoLabel), annoLabel);
+
   // ---- 文本类模块: critique / scheme / review / polish ----
   // 各模块必填字段的 data-testid 不同, 显式指定避免误填可选项。
   const textModules = [
