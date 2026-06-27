@@ -17,6 +17,8 @@ interface Props {
   docxTitle?: string;
   // 提供则结果可就地编辑(改后写回持久化, 导出/串联自动用改后的版本)
   onTextChange?: (t: string) => void;
+  // 同一页面出现多个结果面板时, 用于给 data-testid 加前缀避免冲突
+  idPrefix?: string;
 }
 
 // 统一的结果展示区: 流式文本 + 复制 + 导出(MD/Word) + 串联 + 停止 + 状态。
@@ -31,9 +33,11 @@ export default function ResultPanel({
   onNext,
   docxTitle,
   onTextChange,
+  idPrefix,
 }: Props) {
   const [copyState, setCopyState] = useState<"idle" | "ok" | "fail">("idle");
   const [editing, setEditing] = useState(false);
+  const tid = (name: string) => (idPrefix ? `${idPrefix}-${name}` : name);
 
   const copy = async () => {
     const ok = await copyText(text);
@@ -48,14 +52,14 @@ export default function ResultPanel({
   };
 
   return (
-    <div className="result-panel" data-testid="result-panel">
+    <div className="result-panel" data-testid={tid("result-panel")}>
       <div className="result-toolbar">
         <span className="result-status">
           {running ? "生成中…" : error ? "出错了" : text ? "已完成" : "等待开始"}
         </span>
         <div className="result-actions">
           {running && onStop && (
-            <button className="btn-ghost" onClick={onStop} data-testid="stop-btn">
+            <button className="btn-ghost" onClick={onStop} data-testid={tid("stop-btn")}>
               停止
             </button>
           )}
@@ -63,48 +67,48 @@ export default function ResultPanel({
             <button
               className={`btn-ghost ${editing ? "active" : ""}`}
               onClick={() => setEditing((v) => !v)}
-              data-testid="edit-btn"
+              data-testid={tid("edit-btn")}
             >
               {editing ? "完成编辑" : "编辑"}
             </button>
           )}
           {text && !running && nextLabel && onNext && (
-            <button className="btn-ghost" onClick={onNext} data-testid="next-btn">
+            <button className="btn-ghost" onClick={onNext} data-testid={tid("next-btn")}>
               {nextLabel}
             </button>
           )}
           {text && !running && (
-            <button className="btn-ghost" onClick={copy} data-testid="copy-btn">
+            <button className="btn-ghost" onClick={copy} data-testid={tid("copy-btn")}>
               {copyState === "ok" ? "已复制" : copyState === "fail" ? "复制失败" : "复制"}
             </button>
           )}
           {text && !running && (
-            <button className="btn-ghost" onClick={exportMd} data-testid="export-md-btn">
+            <button className="btn-ghost" onClick={exportMd} data-testid={tid("export-md-btn")}>
               导出 Markdown
             </button>
           )}
           {text && !running && (
-            <button className="btn-ghost" onClick={exportDocx} data-testid="export-docx-btn">
+            <button className="btn-ghost" onClick={exportDocx} data-testid={tid("export-docx-btn")}>
               导出 Word
             </button>
           )}
         </div>
       </div>
       {error ? (
-        <div className="result-error" data-testid="result-error">
+        <div className="result-error" data-testid={tid("result-error")}>
           {error}
         </div>
       ) : (
         editing && onTextChange ? (
           <textarea
             className="result-edit"
-            data-testid="result-edit"
+            data-testid={tid("result-edit")}
             value={text}
             onChange={(e) => onTextChange(e.target.value)}
             spellCheck={false}
           />
         ) : (
-          <div className="result-text" data-testid="result-text">
+          <div className="result-text" data-testid={tid("result-text")}>
             {text ? (
               <Markdown>{text}</Markdown>
             ) : (

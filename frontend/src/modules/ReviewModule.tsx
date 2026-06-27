@@ -10,6 +10,13 @@ export default function ReviewModule() {
   const [title, setTitle] = usePersistentState("review:title", "");
   const [text, setText] = usePersistentState("review:text", "");
   const { text: result, running, error, start, stop, setText: setResult } = useStream("review:result");
+  // 据评审生成修订建议(闭环): 第二个结果槽。
+  const rev = useStream("review:revise");
+
+  const genRevision = () => {
+    if (!result.trim() || rev.running) return;
+    rev.start("revise", { text, review: result });
+  };
 
   const submit = () => {
     if (!text.trim() || running) return;
@@ -88,6 +95,29 @@ export default function ReviewModule() {
         exportName="评审意见"
         placeholder="三位评审的意见、评级与致命问题汇总会显示在这里。"
       />
+
+      {result && !running && (
+        <div className="revision-cta">
+          <button className="btn-primary" onClick={genRevision} disabled={rev.running} data-testid="gen-revision-btn">
+            {rev.running ? "生成修订建议中…" : "据评审生成修订建议 →"}
+          </button>
+          <span className="revision-hint">把上面的共识弱点逐条定位回草稿、给出可执行的改法</span>
+        </div>
+      )}
+
+      {(rev.text || rev.running) && (
+        <ResultPanel
+          text={rev.text}
+          running={rev.running}
+          error={rev.error}
+          onStop={rev.stop}
+          onTextChange={rev.setText}
+          exportName="修订建议"
+          docxTitle="修订建议"
+          idPrefix="revision"
+          placeholder="逐条弱点的定位与修改建议会显示在这里。"
+        />
+      )}
     </div>
   );
 }

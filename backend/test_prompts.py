@@ -39,6 +39,8 @@ def main() -> int:
         ("abstract 含中文摘要结构", "## 中文摘要" in _system("abstract", {"text": "x"})),
         ("abstract 含英文摘要与关键词", all(s in _system("abstract", {"text": "x"}) for s in ("Abstract", "关键词", "Keywords"))),
         ("abstract 强调不编造", "不编造" in _system("abstract", {"text": "x"})),
+        ("revise 含修改优先级", "修改优先级" in _system("revise", {"text": "x", "review": "y"})),
+        ("revise 注入草稿与评审", all(s in build_messages("revise", {"text": "草稿AA", "review": "评审BB"})[1]["content"] for s in ("草稿AA", "评审BB"))),
         # AI 使用标注: 披露名称/版本/使用时间, 含起止标识, 声明未直接生成整段材料
         ("标注含使用时间", "使用时间" in build_annotation()),
         ("标注含名称及版本", "名称及版本" in build_annotation()),

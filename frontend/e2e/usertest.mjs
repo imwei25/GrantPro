@@ -92,6 +92,14 @@ try {
       // 评分汇总表应被解析成 SVG 雷达图
       const radarOk = await page.getByTestId("review-radar").locator("svg polygon.radar-data").first().isVisible().catch(() => false);
       ok("[review] 评分雷达图渲染", radarOk);
+      // 据评审生成修订建议(闭环): 第二个结果面板出现并产出
+      await page.getByTestId("gen-revision-btn").click();
+      let revOk = false;
+      try {
+        await page.getByTestId("revision-result-text").filter({ hasText: "[MOCK]" }).waitFor({ timeout: 15000 });
+        revOk = true;
+      } catch { /* 超时 */ }
+      ok("[review] 据评审生成修订建议", revOk);
     }
   }
 

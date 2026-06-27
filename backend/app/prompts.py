@@ -151,12 +151,37 @@ def build_abstract(inputs: dict) -> list[dict]:
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
+# ------------------------- 7. 据评审生成修订建议(闭环) -------------------------
+
+def build_revise(inputs: dict) -> list[dict]:
+    system = (
+        "你是国家自然科学基金申请书修改专家。"
+        + _COMPLIANCE
+        + "下面给你“申请书草稿”与“模拟评审意见（含共识弱点）”。请据评审意见，"
+        "为申请人给出可操作的修订建议，要求：\n"
+        "① 针对评审指出的每一条主要问题/共识弱点，逐条处理；\n"
+        "② 每条都要：复述该问题 → 定位到草稿中最相关的部分（引用关键句或小标题）→ "
+        "给出具体、可执行的修改建议（怎么改、补什么）；\n"
+        "③ 严禁替申请人编造数据、文献或结论；不确定处提示其自行补充与核实；\n"
+        "④ 最后另起“## 修改优先级”：列出先改哪几条最影响评审结果。\n"
+        "用 Markdown 分条输出，具体、可落地。"
+    )
+    user = (
+        "【申请书草稿】\n"
+        + (inputs.get("text", "") or "").strip()
+        + "\n\n【模拟评审意见】\n"
+        + (inputs.get("review", "") or "").strip()
+    )
+    return [{"role": "system", "content": system}, {"role": "user", "content": user}]
+
+
 _BUILDERS = {
     "critique": build_critique,
     "scheme": build_scheme,
     "review": build_review,
     "polish": build_polish,
     "abstract": build_abstract,
+    "revise": build_revise,
 }
 
 

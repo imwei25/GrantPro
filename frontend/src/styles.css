@@ -1177,6 +1177,19 @@ select:focus {
   padding: 12px 14px;
 }
 
+/* 据评审生成修订建议 */
+.revision-cta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.revision-hint {
+  font-size: 12.5px;
+  color: var(--ink-dim, #9fb0d0);
+}
+
 /* AI 写作痕迹自检 */
 .ai-tells {
   margin: 14px 0;
