@@ -1,5 +1,6 @@
 import { useStream } from "../lib/useStream";
 import { usePersistentState } from "../lib/usePersistentState";
+import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
 import ResultPanel from "../components/ResultPanel";
 import Dropzone from "../components/Dropzone";
 import type { Goto } from "../App";
@@ -15,6 +16,7 @@ export default function SchemeModule({ goto }: { goto: Goto }) {
     if (!idea.trim() || running) return;
     start("scheme", { idea, field, objective, resources });
   };
+  useCtrlEnterSubmit(submit);
 
   const reset = () => {
     if (running) stop();
@@ -83,7 +85,7 @@ export default function SchemeModule({ goto }: { goto: Goto }) {
           }
         />
         <div className="form-actions">
-          <button className="btn-primary" onClick={submit} disabled={!idea.trim() || running} data-testid="run-btn">
+          <button className="btn-primary" onClick={submit} disabled={!idea.trim() || running} data-testid="run-btn" title="Ctrl / ⌘ + Enter 提交">
             {running ? "生成中…" : "生成研究方案"}
           </button>
           <button className="btn-ghost" onClick={reset} data-testid="reset-btn">

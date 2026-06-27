@@ -1,5 +1,6 @@
 import { useStream } from "../lib/useStream";
 import { usePersistentState } from "../lib/usePersistentState";
+import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
 import ResultPanel from "../components/ResultPanel";
 import Dropzone from "../components/Dropzone";
 
@@ -12,6 +13,7 @@ export default function ReviewModule() {
     if (!text.trim() || running) return;
     start("review", { title, text });
   };
+  useCtrlEnterSubmit(submit);
 
   const reset = () => {
     if (running) stop();
@@ -56,7 +58,7 @@ export default function ReviewModule() {
           onText={(t) => setText((prev) => (prev ? prev + "\n\n" : "") + t)}
         />
         <div className="form-actions">
-          <button className="btn-primary" onClick={submit} disabled={!text.trim() || running} data-testid="run-btn">
+          <button className="btn-primary" onClick={submit} disabled={!text.trim() || running} data-testid="run-btn" title="Ctrl / ⌘ + Enter 提交">
             {running ? "评审中…" : "开始模拟评审"}
           </button>
           <button className="btn-ghost" onClick={reset} data-testid="reset-btn">

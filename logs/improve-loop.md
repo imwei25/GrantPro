@@ -148,4 +148,10 @@
 - 现状/问题：应用是「选题→依据→方案→评审→润色」五道工序流水线，每节结果存于 `<module>:result`，但没有把已完成各节拼成一份完整 Word/Markdown 的能力，用户需手动复制五次。
 - 改进：新增 `components/WorkspaceSummary.tsx`——读取各模块持久化结果，展示「已完成 N/5 节」与逐节字数（点击可回到该模块），一键「汇总导出 Word / Markdown」（按 `# 节标题` 分节、立项依据自动附参考文献、复用 `downloadDocx/downloadText`）；新增 `readPersisted()` helper；接入首页；配套样式。e2e 加汇总出现/节数/导出触发下载/无错误断言。
 - 验证：build=✅ 真实测试=✅ 31/31（新增"工作台汇总出现/含5节/导出Word触发下载/无错误"，无 pageerror/console.error）；桌面截图视觉确认。
+- 提交：`9f99b64`
+
+### [轮次 3 · T8] 模块内 Ctrl/⌘+Enter 提交
+- 现状/问题：填完表单只能用鼠标点按钮运行，长文本场景下手不顺。
+- 改进：新增 `lib/useCtrlEnterSubmit.ts`（window 级监听，转发到各模块已带守卫的 submit），接入全部 5 个模块；运行按钮加 `title="Ctrl / ⌘ + Enter 提交"` 提示。
+- 验证：build=✅ 真实测试=✅ 32/32（新增"Ctrl+Enter 触发运行"，无 pageerror/console.error）。
 - 提交：见下方 commit。

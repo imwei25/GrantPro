@@ -4,6 +4,7 @@ import Markdown from "../components/Markdown";
 import Dropzone from "../components/Dropzone";
 import { downloadText, downloadDocx, tsName } from "../lib/download";
 import { usePersistentState } from "../lib/usePersistentState";
+import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
 import type { Goto } from "../App";
 
 export default function RationaleModule({ goto }: { goto: Goto }) {
@@ -49,6 +50,8 @@ export default function RationaleModule({ goto }: { goto: Goto }) {
     );
     setRunning(false);
   };
+
+  useCtrlEnterSubmit(submit);
 
   const stop = () => {
     ctrl.current?.abort();
@@ -127,7 +130,7 @@ export default function RationaleModule({ goto }: { goto: Goto }) {
           }
         />
         <div className="form-actions">
-          <button className="btn-primary" onClick={submit} disabled={!field.trim() || running} data-testid="run-btn">
+          <button className="btn-primary" onClick={submit} disabled={!field.trim() || running} data-testid="run-btn" title="Ctrl / ⌘ + Enter 提交">
             {running ? "调研中…" : "检索文献并撰写立项依据"}
           </button>
           <button className="btn-ghost" onClick={reset} data-testid="reset-btn">

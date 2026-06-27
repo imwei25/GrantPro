@@ -108,6 +108,18 @@ try {
   ok("[rationale] 出现引用核验区", await page.getByTestId("verify").isVisible().catch(() => false));
   ok("[rationale] 完成后有导出Word按钮", await page.getByTestId("export-docx-btn").isVisible().catch(() => false));
 
+  // ---- 键盘提交: Ctrl+Enter 也能触发运行 ----
+  await page.getByTestId("nav-polish").click();
+  await page.waitForTimeout(150);
+  await page.getByTestId("input-text").fill("用 Ctrl+Enter 提交的测试文本。");
+  await page.getByTestId("input-text").press("Control+Enter");
+  let kbOk = false;
+  try {
+    await page.getByTestId("result-text").filter({ hasText: "[MOCK]" }).waitFor({ timeout: 15000 });
+    kbOk = true;
+  } catch { /* 未触发 */ }
+  ok("Ctrl+Enter 触发运行", kbOk);
+
   // ---- 工作台汇总: 回首页, 已完成各节应可一键汇总导出 ----
   await page.getByTestId("brand").click().catch(() => {});
   await page.waitForTimeout(300);

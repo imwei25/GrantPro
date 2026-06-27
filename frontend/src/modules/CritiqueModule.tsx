@@ -1,5 +1,6 @@
 import { useStream } from "../lib/useStream";
 import { usePersistentState } from "../lib/usePersistentState";
+import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
 import ResultPanel from "../components/ResultPanel";
 import Dropzone from "../components/Dropzone";
 import type { Goto } from "../App";
@@ -16,6 +17,7 @@ export default function CritiqueModule({ goto }: { goto: Goto }) {
     if (!title.trim() || running) return;
     start("critique", { title, field, problem, innovation, background });
   };
+  useCtrlEnterSubmit(submit);
 
   const reset = () => {
     if (running) stop();
@@ -94,7 +96,7 @@ export default function CritiqueModule({ goto }: { goto: Goto }) {
           }
         />
         <div className="form-actions">
-          <button className="btn-primary" onClick={submit} disabled={!title.trim() || running} data-testid="run-btn">
+          <button className="btn-primary" onClick={submit} disabled={!title.trim() || running} data-testid="run-btn" title="Ctrl / ⌘ + Enter 提交">
             {running ? "诊断中…" : "开始选题诊断"}
           </button>
           <button className="btn-ghost" onClick={reset} data-testid="reset-btn">
