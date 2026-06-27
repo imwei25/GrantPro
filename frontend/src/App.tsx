@@ -6,11 +6,12 @@ import RationaleModule from "./modules/RationaleModule";
 import SchemeModule from "./modules/SchemeModule";
 import ReviewModule from "./modules/ReviewModule";
 import PolishModule from "./modules/PolishModule";
+import AbstractModule from "./modules/AbstractModule";
 import CompliancePanel from "./components/CompliancePanel";
 import WorkspaceSummary from "./components/WorkspaceSummary";
 import ArchiveBar from "./components/ArchiveBar";
 
-export type ModuleId = "home" | "critique" | "rationale" | "scheme" | "review" | "polish";
+export type ModuleId = "home" | "critique" | "rationale" | "scheme" | "review" | "polish" | "abstract";
 // 跨模块传递: 把数据写入目标模块的持久化字段, 再切换过去。
 export type Goto = (target: ModuleId, patch?: Record<string, unknown>) => void;
 
@@ -23,14 +24,15 @@ interface NavItem {
   icon: keyof typeof ICONS;
 }
 
-// 五个模块是一条真实的工作流水线(选题→依据→方案→评审→润色),
-// 编号 01–05 编码的是顺序本身, 而非装饰。
+// 六个模块: 01–05 是一条真实工作流水线(选题→依据→方案→评审→润色),
+// 06 项目摘要从全文反向凝练, 故置于末端。编号编码的是顺序本身, 而非装饰。
 const NAV: NavItem[] = [
   { id: "critique", n: "01", kicker: "DIAGNOSE", title: "选题诊断", desc: "评审视角挑硬伤、定科学问题属性", icon: "target" },
   { id: "rationale", n: "02", kicker: "GROUND", title: "立项依据", desc: "检索真实文献、接地撰写、核验引用", icon: "layers" },
   { id: "scheme", n: "03", kicker: "DESIGN", title: "研究方案", desc: "目标·内容·关键问题·技术路线", icon: "flow" },
   { id: "review", n: "04", kicker: "REVIEW", title: "评审模拟", desc: "三位评审独立打分挑刺", icon: "scope" },
   { id: "polish", n: "05", kicker: "REFINE", title: "润色合规", desc: "润色为基金书面语 + AI 使用标注", icon: "spark" },
+  { id: "abstract", n: "06", kicker: "ABSTRACT", title: "项目摘要", desc: "从全文凝练摘要 + 关键词(中英)", icon: "doc" },
 ];
 
 const ICONS = {
@@ -65,6 +67,13 @@ const ICONS = {
   spark: (
     <>
       <path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6L12 3z" />
+    </>
+  ),
+  doc: (
+    <>
+      <path d="M6 3h8l4 4v14H6z" />
+      <path d="M14 3v4h4" />
+      <path d="M9 12h6M9 16h6" />
     </>
   ),
 } as const;
@@ -196,6 +205,7 @@ export default function App() {
         {active === "scheme" && <SchemeModule goto={goto} />}
         {active === "review" && <ReviewModule />}
         {active === "polish" && <PolishModule />}
+        {active === "abstract" && <AbstractModule />}
       </main>
     </div>
   );

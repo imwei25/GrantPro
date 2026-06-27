@@ -29,7 +29,7 @@ try {
   await page.goto(BASE, { waitUntil: "networkidle" });
   ok("首页标题加载", await page.locator(".hero-title").isVisible());
   ok("合规横幅可见", await page.getByTestId("compliance-banner").isVisible());
-  ok("流水线5张卡片", (await page.getByTestId("pipeline").locator(".stage").count()) === 5);
+  ok("流水线6张卡片", (await page.getByTestId("pipeline").locator(".stage").count()) === 6);
   await page.waitForTimeout(500);
   const statusText = await page.getByTestId("status").innerText().catch(() => "");
   ok("状态显示演示模式(MOCK)", /演示模式|MOCK/.test(statusText), statusText.replace(/\s+/g, " "));
@@ -98,6 +98,18 @@ try {
   await page.waitForTimeout(200);
   const copyLabel = await page.getByTestId("copy-btn").innerText().catch(() => "");
   ok("复制按钮有结果反馈", /已复制|复制失败/.test(copyLabel), copyLabel);
+
+  // ---- 项目摘要 abstract: 填入示例 -> 运行 -> 出摘要 ----
+  await page.getByTestId("nav-abstract").click();
+  await page.waitForTimeout(150);
+  await page.getByTestId("example-btn").click();
+  await page.waitForTimeout(100);
+  ok("[abstract] 示例填好必填项", (await page.getByTestId("input-source").inputValue().catch(() => "")).length > 0);
+  await page.getByTestId("run-btn").click();
+  try {
+    await page.getByTestId("result-text").filter({ hasText: "[MOCK]" }).waitFor({ timeout: 15000 });
+    ok("[abstract] 流式输出到达", true);
+  } catch { ok("[abstract] 流式输出到达", false); }
 
   // ---- 立项依据 rationale (多阶段 SSE: status→references→delta→verify) ----
   await page.getByTestId("nav-rationale").click();

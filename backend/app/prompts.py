@@ -131,11 +131,32 @@ def build_polish(inputs: dict) -> list[dict]:
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
+# ------------------------- 6. 项目摘要(从全文凝练) -------------------------
+
+def build_abstract(inputs: dict) -> list[dict]:
+    system = (
+        "你是国家自然科学基金申请书写作专家。"
+        + _COMPLIANCE
+        + "请基于申请人提供的申请书内容，凝练出符合基金委要求的“项目摘要”。"
+        "铁律：只压缩与提炼已有内容，不新增观点、不编造数据或文献；"
+        "摘要须能独立成段、概括全文。按以下结构输出：\n"
+        "## 中文摘要\n一段约 400 字的摘要，依次涵盖：研究背景与意义、拟解决的关键科学问题、"
+        "主要研究内容与方法、预期成果与价值；语言凝练客观，避免空泛套话。\n"
+        "## 关键词\n3-5 个，用分号分隔。\n"
+        "## Abstract\n与中文摘要对应的英文摘要。\n"
+        "## Keywords\n3-5 个英文关键词，用分号分隔。\n"
+        "若提供内容不足以支撑某部分，请明确提示申请人补充，不要编造。"
+    )
+    user = "以下是申请书核心内容（可能由多节拼接）：\n\n" + (inputs.get("text", "") or "").strip()
+    return [{"role": "system", "content": system}, {"role": "user", "content": user}]
+
+
 _BUILDERS = {
     "critique": build_critique,
     "scheme": build_scheme,
     "review": build_review,
     "polish": build_polish,
+    "abstract": build_abstract,
 }
 
 
