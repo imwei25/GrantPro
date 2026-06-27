@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { readPersisted, writePersisted } from "../lib/usePersistentState";
 import { downloadText, downloadDocx, tsName } from "../lib/download";
+import { exportArchive } from "../lib/archive";
 import { apiUrl } from "../lib/api";
 import type { Reference } from "../lib/sse";
 import type { ModuleId } from "../App";
@@ -74,6 +75,12 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
       setConfirmClear(true);
       setTimeout(() => setConfirmClear(false), 3000);
       return;
+    }
+    // 清空前自动下载一份快照, 避免误删导致心血尽失。
+    try {
+      exportArchive(tsName("GrantPro清空前自动备份", "json"));
+    } catch {
+      /* 备份失败不阻断清空 */
     }
     try {
       const keys: string[] = [];

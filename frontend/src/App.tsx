@@ -8,6 +8,7 @@ import ReviewModule from "./modules/ReviewModule";
 import PolishModule from "./modules/PolishModule";
 import CompliancePanel from "./components/CompliancePanel";
 import WorkspaceSummary from "./components/WorkspaceSummary";
+import ArchiveBar from "./components/ArchiveBar";
 
 export type ModuleId = "home" | "critique" | "rationale" | "scheme" | "review" | "polish";
 // 跨模块传递: 把数据写入目标模块的持久化字段, 再切换过去。
@@ -241,6 +242,8 @@ function Home({ onPick }: { onPick: (m: ModuleId) => void }) {
       </div>
 
       <WorkspaceSummary onPick={onPick} />
+
+      <ArchiveBar />
 
       <CompliancePanel />
     </div>

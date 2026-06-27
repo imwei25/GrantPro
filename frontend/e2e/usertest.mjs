@@ -183,6 +183,20 @@ try {
   ok("汇总 MD 含模块标题", /# 选题诊断/.test(mdContent) && /# 立项依据/.test(mdContent));
   ok("汇总 MD 末尾附 AI 使用标注", /# 生成式 AI 使用标注/.test(mdContent) && /【生成式人工智能使用说明】/.test(mdContent));
 
+  // 本地存档: 导出 .json 应含各模块持久化键(供下方往返验证)
+  let archivePath = "";
+  try {
+    const [arDl] = await Promise.all([
+      page.waitForEvent("download", { timeout: 8000 }),
+      page.getByTestId("export-archive-btn").click(),
+    ]);
+    archivePath = await arDl.path();
+    const arJson = JSON.parse(fs.readFileSync(archivePath, "utf-8"));
+    ok("存档导出含模块数据", typeof arJson["nsfc:critique:result"] === "string");
+  } catch (e) {
+    ok("存档导出含模块数据", false, String(e).slice(0, 60));
+  }
+
   // 送全文去评审模拟: 应跳到评审模块且输入框被装配好的内容预填
   await page.getByTestId("send-all-review-btn").click();
   await page.waitForTimeout(200);
@@ -200,6 +214,17 @@ try {
   await page.getByTestId("clear-all-btn").click();
   await page.waitForTimeout(200);
   ok("确认后工作台清空消失", !(await page.getByTestId("workspace").isVisible().catch(() => false)));
+
+  // 本地存档往返: 导入刚才导出的 .json, 清空后的内容应恢复
+  if (archivePath) {
+    await page.getByTestId("import-archive-input").setInputFiles(archivePath);
+    await page.waitForTimeout(1500); // 等待导入 + location.reload()
+    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForTimeout(400);
+    ok("导入存档后内容恢复", await page.getByTestId("workspace").isVisible().catch(() => false));
+  } else {
+    ok("导入存档后内容恢复", false, "无存档文件");
+  }
 
   // ---- 全局: 无 JS 报错 ----
   ok("无 pageerror", pageErrors.length === 0, pageErrors.join(" | ").slice(0, 200));
