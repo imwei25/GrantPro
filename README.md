@@ -46,18 +46,21 @@ backend/        Python sidecar
     literature.py   PubMed(NCBI E-utilities) 客户端
     compliance.py   AI 使用标注模板 + 提交前自查清单
     extract.py      上传文档(Word/PDF/Excel/CSV/txt)抽取纯文本
-    formatting.py   导出 Word(.docx)
+    formatting.py   导出 Word(.docx, 支持 Markdown 链接/加粗)
     main.py         FastAPI 入口(也托管已构建的前端)
   selftest.py       后端冒烟测试(mock 不花钱)
+  test_formatting.py  docx 导出离线校验(链接/加粗/中文字体)
+  test_literature.py  PubMed 客户端离线校验(限速/重试/api_key)
   requirements.txt
   .env.example
 frontend/       Vite + React 前端
   src/
     App.tsx         导航 + 合规横幅
     modules/        五个模块界面
-    lib/            SSE 流式 + 运行 hook + 持久化
-    components/     Markdown / Dropzone / ResultPanel
-scripts/        安装与启动脚本
+    lib/            SSE 流式 + 运行 hook + 持久化 + 剪贴板/下载
+    components/     Markdown(GFM+Mermaid) / Dropzone / ResultPanel / Mermaid
+  e2e/            Playwright 端到端"真实用户"测试
+scripts/        安装与启动脚本(setup / dev / serve-lan / usertest)
 启动基金助手.bat
 ```
 
@@ -112,4 +115,22 @@ powershell -ExecutionPolicy Bypass -File scripts/serve-lan.ps1
 cd backend
 .venv/Scripts/python.exe selftest.py mock
 .venv/Scripts/python.exe selftest.py real
+```
+
+后端离线单元测试（不触网、不花钱）：
+
+```powershell
+cd backend
+.venv/Scripts/python.exe test_formatting.py    # docx 导出: 链接/加粗/中文字体
+.venv/Scripts/python.exe test_literature.py    # PubMed: 限速/429 重试/api_key
+```
+
+端到端「真实用户」测试（Playwright 驱动真实 Chromium 走通五大模块，MOCK 模式不花钱）：
+
+```powershell
+# 一键: 构建前端 → 以 MOCK 起后端 → 跑 Playwright → 收尾停服务
+powershell -ExecutionPolicy Bypass -File scripts/usertest.ps1
+
+# 或在已运行(MOCK)后端时, 仅跑 e2e:
+cd frontend; npm run test:e2e
 ```

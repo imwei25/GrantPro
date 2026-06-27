@@ -97,4 +97,10 @@
 - 现状/问题：react-markdown 默认不支持 GFM，模型若产出 Markdown 表格会渲染成一行纯文本（错乱），裸 URL 也不可点击。
 - 改进：`Markdown.tsx` 接入 `remark-gfm`；`styles.css` 加表格样式；演示模式 mock 在评审模拟场景附带一个 GFM 表格（展示渲染、可被 e2e 验证）。
 - 验证：build=✅ mock=✅ 真实测试=✅ 24/24（新增"[review] GFM 表格渲染为 <table>"，无 pageerror/console.error）。
+- 提交：`ed692ef`
+
+### [轮次 2 · T9] 补齐 README 测试文档与目录结构（文档漂移）
+- 现状/问题：本轮新增的 Playwright e2e、后端离线单测、`scripts/usertest.ps1`、`npm run test:e2e`、Mermaid/GFM 等均未反映在 README，「测试」小节只剩 selftest，文档与现状不一致。
+- 改进：README 目录结构补 `test_formatting.py`/`test_literature.py`/`e2e/`/`Mermaid` 等；「测试」小节新增后端离线单测与一键 e2e（`scripts/usertest.ps1` / `npm run test:e2e`）的用法。
+- 验证：真实测试=✅ 实跑文档承诺的 `scripts/usertest.ps1` 一键流程，构建→MOCK 起后端→Playwright 24/24→停服务→`E2E PASSED`，路径属实。
 - 提交：见下方 commit。
