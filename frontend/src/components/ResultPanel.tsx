@@ -19,6 +19,8 @@ interface Props {
   onTextChange?: (t: string) => void;
   // 同一页面出现多个结果面板时, 用于给 data-testid 加前缀避免冲突
   idPrefix?: string;
+  // 建议字数区间 [min, max]; 提供则显示篇幅仪表与超纲/不足提示
+  targetRange?: [number, number];
 }
 
 // 统一的结果展示区: 流式文本 + 复制 + 导出(MD/Word) + 串联 + 停止 + 状态。
@@ -34,10 +36,15 @@ export default function ResultPanel({
   docxTitle,
   onTextChange,
   idPrefix,
+  targetRange,
 }: Props) {
   const [copyState, setCopyState] = useState<"idle" | "ok" | "fail">("idle");
   const [editing, setEditing] = useState(false);
   const tid = (name: string) => (idPrefix ? `${idPrefix}-${name}` : name);
+
+  const len = text.trim().length;
+  // 篇幅状态: 不足 / 合适 / 超纲(仅在提供 targetRange 时计算)
+  const lenState = !targetRange ? "" : len < targetRange[0] ? "short" : len > targetRange[1] ? "long" : "ok";
 
   const copy = async () => {
     const ok = await copyText(text);
@@ -56,6 +63,20 @@ export default function ResultPanel({
       <div className="result-toolbar">
         <span className="result-status">
           {running ? "生成中…" : error ? "出错了" : text ? "已完成" : "等待开始"}
+          {text && (
+            <span className={`result-count ${lenState}`} data-testid={tid("result-count")}>
+              {len} 字
+              {targetRange && (
+                <>
+                  {" · 建议 "}
+                  {targetRange[0]}–{targetRange[1]} 字
+                  {lenState === "short" && "（偏短）"}
+                  {lenState === "long" && "（偏长）"}
+                  <span className="count-note">（以当年指南为准）</span>
+                </>
+              )}
+            </span>
+          )}
         </span>
         <div className="result-actions">
           {running && onStop && (

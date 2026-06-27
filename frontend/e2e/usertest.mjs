@@ -120,6 +120,9 @@ try {
     await page.getByTestId("result-text").filter({ hasText: "[MOCK]" }).waitFor({ timeout: 15000 });
     ok("[abstract] 流式输出到达", true);
   } catch { ok("[abstract] 流式输出到达", false); }
+  await page.waitForTimeout(150);
+  const countTxt = await page.getByTestId("result-count").innerText().catch(() => "");
+  ok("[abstract] 显示篇幅仪表(字数+建议区间)", /字/.test(countTxt) && /建议 300–450/.test(countTxt), countTxt.replace(/\s+/g, " "));
 
   // ---- 立项依据 rationale (多阶段 SSE: status→references→delta→verify) ----
   await page.getByTestId("nav-rationale").click();

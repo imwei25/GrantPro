@@ -1177,6 +1177,23 @@ select:focus {
   padding: 12px 14px;
 }
 
+/* 篇幅仪表 */
+.result-count {
+  margin-left: 10px;
+  font-size: 12px;
+  color: var(--ink-dim, #9fb0d0);
+}
+.result-count.short,
+.result-count.long {
+  color: #ffc466;
+}
+.result-count.ok {
+  color: #35e0d0;
+}
+.result-count .count-note {
+  opacity: 0.7;
+}
+
 /* 据评审生成修订建议 */
 .revision-cta {
   display: flex;

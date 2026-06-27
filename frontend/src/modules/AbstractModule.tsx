@@ -72,6 +72,7 @@ export default function AbstractModule() {
         onTextChange={setResult}
         exportName="项目摘要"
         docxTitle="项目摘要"
+        targetRange={[300, 450]}
         placeholder="中文摘要、关键词、英文摘要会显示在这里。"
       />
     </div>
