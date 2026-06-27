@@ -99,6 +99,7 @@ export interface Reference {
   journal: string;
   year: string;
   url: string;
+  source?: string;
 }
 
 export interface Verification {

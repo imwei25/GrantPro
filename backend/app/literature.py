@@ -23,6 +23,7 @@ from .config import settings
 
 _BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 _CROSSREF = "https://api.crossref.org/works"
+_S2 = "https://api.semanticscholar.org/graph/v1/paper/search"
 _TOOL = "nsfc-grant-assistant"
 _UA = "nsfc-grant-assistant/0.1 (literature grounding; +https://github.com/imwei25/GrantPro)"
 
@@ -60,9 +61,12 @@ def _min_interval() -> float:
     return 0.12 if (getattr(settings, "ncbi_api_key", "") or "") else 0.4
 
 
-async def _throttled_get(client: httpx.AsyncClient, url: str, params: dict, retries: int = 3) -> httpx.Response:
+async def _throttled_get(
+    client: httpx.AsyncClient, url: str, params: dict, retries: int = 3, headers: dict | None = None
+) -> httpx.Response:
     """带限速间隔与退避重试的 GET。遇 429/5xx/网络抖动重试, 否则抛出。"""
     global _last_request_ts
+    hdrs = {"User-Agent": _UA, **(headers or {})}
     last_exc: Exception | None = None
     for attempt in range(retries):
         # 限速: 与上一次请求至少间隔 _min_interval 秒。
@@ -72,7 +76,7 @@ async def _throttled_get(client: httpx.AsyncClient, url: str, params: dict, retr
                 await asyncio.sleep(wait)
             _last_request_ts = time.monotonic()
         try:
-            r = await client.get(url, params=params, headers={"User-Agent": _UA})
+            r = await client.get(url, params=params, headers=hdrs)
             if r.status_code == 429 or r.status_code >= 500:
                 last_exc = httpx.HTTPStatusError(
                     f"NCBI 返回 {r.status_code}", request=r.request, response=r
@@ -218,6 +222,53 @@ async def crossref_search(client: httpx.AsyncClient, query: str, rows: int = 6) 
     return papers
 
 
+async def semantic_scholar_search(client: httpx.AsyncClient, query: str, limit: int = 6) -> list[dict]:
+    """检索 Semantic Scholar(全学科), 返回与其它源同构的记录。
+    标识优先级: DOI > PMID > S2 paperId; 仅在配置了 S2_API_KEY 时由上层调用。"""
+    params = {
+        "query": query,
+        "limit": str(limit),
+        "fields": "title,year,authors,externalIds,abstract,venue",
+    }
+    key = getattr(settings, "s2_api_key", "") or ""
+    headers = {"x-api-key": key} if key else {}
+    r = await _throttled_get(client, _S2, params, headers=headers)
+    items = (r.json() or {}).get("data") or []
+    papers: list[dict] = []
+    for it in items:
+        title = (it.get("title") or "").strip()
+        if not title:
+            continue
+        ext = it.get("externalIds") or {}
+        doi = (ext.get("DOI") or "").strip()
+        pmid = str(ext.get("PubMed") or "").strip()
+        if doi:
+            url = doi_url(doi)
+        elif pmid:
+            url = pubmed_url(pmid)
+        else:
+            pid = (it.get("paperId") or "").strip()
+            if not pid:
+                continue
+            url = f"https://www.semanticscholar.org/paper/{pid}"
+        authors = it.get("authors") or []
+        first_author = (authors[0].get("name") if authors else "") or ""
+        papers.append(
+            {
+                "pmid": pmid,
+                "doi": doi,
+                "title": title,
+                "abstract": (it.get("abstract") or "").strip(),
+                "first_author": first_author,
+                "journal": (it.get("venue") or "").strip(),
+                "year": str(it.get("year") or "") if it.get("year") else "",
+                "url": url,
+                "source": "semanticscholar",
+            }
+        )
+    return papers
+
+
 async def _pubmed_collect(client: httpx.AsyncClient, queries: list[str], per_query: int, cap: int) -> list[dict]:
     seen: set[str] = set()
     collected: list[str] = []
@@ -250,6 +301,26 @@ async def _crossref_collect(client: httpx.AsyncClient, queries: list[str], per_q
     return out[:cap]
 
 
+async def _s2_collect(client: httpx.AsyncClient, queries: list[str], per_query: int, cap: int) -> list[dict]:
+    out: list[dict] = []
+    for q in queries:
+        try:
+            out += await semantic_scholar_search(client, q, limit=per_query)
+        except Exception:  # noqa: BLE001
+            continue
+        if len(out) >= cap:
+            break
+    return out[:cap]
+
+
+def _default_sources() -> tuple[str, ...]:
+    """默认数据源。Semantic Scholar 仅在配置了 key 时启用(无 key 共享池基本不可用)。"""
+    srcs = ["pubmed", "crossref"]
+    if getattr(settings, "s2_api_key", "") or "":
+        srcs.append("semanticscholar")
+    return tuple(srcs)
+
+
 def _merge_dedup(groups: list[list[dict]], cap: int) -> list[dict]:
     """跨源按标题归一去重合并; 先到先得(PubMed 优先), 截断到 cap。"""
     out: list[dict] = []
@@ -270,13 +341,18 @@ async def search_literature(
     queries: list[str],
     per_query: int = 6,
     cap: int = 18,
-    sources: tuple[str, ...] = ("pubmed", "crossref"),
+    sources: tuple[str, ...] | None = None,
 ) -> list[dict]:
-    """对多个检索式检索 PubMed + Crossref, 跨源按标题去重合并, 返回带摘要的论文列表。"""
+    """对多个检索式检索多源(PubMed + Crossref + 可选 Semantic Scholar),
+    跨源按标题去重合并, 返回带摘要的论文列表。"""
+    if sources is None:
+        sources = _default_sources()
     async with httpx.AsyncClient(timeout=httpx.Timeout(30.0)) as client:
         groups: list[list[dict]] = []
         if "pubmed" in sources:
             groups.append(await _pubmed_collect(client, queries, per_query, cap))
         if "crossref" in sources:
             groups.append(await _crossref_collect(client, queries, per_query, cap))
+        if "semanticscholar" in sources:
+            groups.append(await _s2_collect(client, queries, per_query, cap))
     return _merge_dedup(groups, cap)

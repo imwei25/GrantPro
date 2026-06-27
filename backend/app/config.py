@@ -30,6 +30,10 @@ class Settings:
     # 可选: NCBI API key。填写后限速从 3 次/秒提升到 10 次/秒, 减少 429。
     # 申请: https://www.ncbi.nlm.nih.gov/account/ -> Settings -> API Key Management
     ncbi_api_key: str = os.getenv("NCBI_API_KEY", "").strip()
+    # 可选: Semantic Scholar API key。作为立项依据的第三个文献源(再补全学科覆盖)。
+    # 无 key 时其共享池极易 429、基本不可用, 故仅在填写 key 后才启用该源。
+    # 免费申请: https://www.semanticscholar.org/product/api#api-key
+    s2_api_key: str = os.getenv("S2_API_KEY", "").strip()
 
     # 备用供应商: 主供应商额度用完(余额不足/配额超限)时自动切换。
     # 留空则不启用自动降级。

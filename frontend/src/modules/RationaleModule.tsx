@@ -7,6 +7,12 @@ import { usePersistentState } from "../lib/usePersistentState";
 import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
 import type { Goto } from "../App";
 
+// 文献来源标签: 优先用后端给出的 source, 否则按 PMID/DOI 反推。
+function srcLabel(r: Reference): string {
+  const s = r.source || (r.pmid ? "pubmed" : r.doi ? "crossref" : "");
+  return { pubmed: "PubMed", crossref: "Crossref", semanticscholar: "Semantic Scholar" }[s] || "";
+}
+
 export default function RationaleModule({ goto }: { goto: Goto }) {
   const [field, setField] = usePersistentState("rationale:field", "");
   const [keywords, setKeywords] = usePersistentState("rationale:keywords", "");
@@ -161,7 +167,7 @@ export default function RationaleModule({ goto }: { goto: Goto }) {
                   {r.first_author} ({r.year}). {r.title}
                 </a>
                 {r.journal && <span className="ref-journal"> — {r.journal}</span>}
-                <span className="ref-src">{r.pmid ? "PubMed" : r.doi ? "Crossref" : ""}</span>
+                <span className="ref-src">{srcLabel(r)}</span>
               </li>
             ))}
           </ol>

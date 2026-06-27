@@ -115,6 +115,33 @@ async def run() -> int:
     checks.append(("同名优先保留 PubMed", merged[0]["source"] == "pubmed"))
     checks.append(("保留不同标题的 Crossref", any(m["title"] == "A Different Paper" for m in merged)))
 
+    # 6) Semantic Scholar 解析: 标识优先级 DOI > PMID > paperId, 并带 x-api-key
+    settings.s2_api_key = "S2KEY"
+    s2_json = {"data": [
+        {"title": "DOI paper", "year": 2023, "venue": "V1",
+         "authors": [{"name": "Alice Wang"}], "externalIds": {"DOI": "10.7/d"}},
+        {"title": "PMID only paper", "year": 2022,
+         "authors": [{"name": "Bob Li"}], "externalIds": {"PubMed": 555}},
+        {"paperId": "abc123", "title": "S2 only paper", "authors": []},  # 无 DOI/PMID -> 用 paperId
+        {"title": ""},  # 无标题跳过
+    ]}
+    s2_client = FakeClient([FakeResp(200, json_data=s2_json, url="http://s2")])
+    s2papers = await literature.semantic_scholar_search(s2_client, "q", limit=6)
+    by_title = {p["title"]: p for p in s2papers}
+    checks.append(("S2 解析出 3 条(跳过无标题)", len(s2papers) == 3))
+    checks.append(("S2 DOI -> doi.org", by_title.get("DOI paper", {}).get("url") == "https://doi.org/10.7/d"))
+    checks.append(("S2 仅PMID -> pubmed", by_title.get("PMID only paper", {}).get("url") == literature.pubmed_url("555")))
+    checks.append(("S2 兜底 paperId 链接", by_title.get("S2 only paper", {}).get("url") == "https://www.semanticscholar.org/paper/abc123"))
+    checks.append(("S2 请求带 x-api-key", (s2_client.last_headers or {}).get("x-api-key") == "S2KEY"))
+    checks.append(("S2 source 标记", all(p["source"] == "semanticscholar" for p in s2papers)))
+
+    # 7) 数据源门控: 仅在配置 S2 key 时才启用 semanticscholar
+    settings.s2_api_key = ""
+    checks.append(("无 key 不含 S2", "semanticscholar" not in literature._default_sources()))
+    settings.s2_api_key = "S2KEY"
+    checks.append(("有 key 含 S2", "semanticscholar" in literature._default_sources()))
+    settings.s2_api_key = ""  # 还原, 避免影响其它
+
     literature.asyncio.sleep = orig_sleep  # 还原
 
     failed = [n for n, ok in checks if not ok]

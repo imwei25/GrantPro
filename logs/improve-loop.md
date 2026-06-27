@@ -235,3 +235,15 @@
 五轮累计 **17 个方向**；后端测试 5 个文件、e2e 36 项；**已知遗留 bug 仍为 0**。本轮去掉了"立项依据只对生物医学有效"的硬限制。
 
 剩余候选（同前，成本/数据门槛较高）：相似已立项项目查重、指南条目解析完成度清单、Semantic Scholar 第三源、评审打分 JSON 化 + 雷达图、待核实的 2026 三板块导出模板。
+
+---
+
+## 轮次 6（用户要求补 Semantic Scholar）
+
+先核实：Semantic Scholar Graph API 检索**不强制 key**，但**无 key 的共享池实测 5 次重试全 429、基本不可用**（真实 API 验证）。无条件常开会让每次立项依据白白重试 429、拖慢体验。故采用「可选第三源 + 免费 key 门控」。
+
+### [轮次 6 · T2] Semantic Scholar 作可选第三文献源（key 门控）
+- 现状/问题：上一轮已加 Crossref；可再补 Semantic Scholar 扩大覆盖，但其 keyless 共享池基本不可用。
+- 改进：`literature.py` 新增 `semantic_scholar_search()`（标识优先级 DOI>PMID>paperId，带 `x-api-key`），`_throttled_get` 支持自定义 headers；`_default_sources()` 仅在配置 `S2_API_KEY` 时才纳入该源（默认无 key 即跳过，零影响、不刷 429）；config 增 `S2_API_KEY`，`.env.example` 注明 keyless 不可用。references 负载补 `source`，前端按真实来源显示标签（PubMed/Crossref/Semantic Scholar，修正了 S2 带 DOI 被误标 Crossref 的问题）。
+- 验证：mock=✅ 单测=✅ `test_literature` 24/24（S2 解析三类标识/跳过无标题/带 x-api-key/有无 key 的源门控）+ test_rationale 8/8 真实测试=✅ 36/36。S2 实时路径需免费 key（环境无 key）；端点实测返回 429（说明 URL/参数有效、仅限流），默认门控关闭故对用户零风险。
+- 提交：见下方 commit。

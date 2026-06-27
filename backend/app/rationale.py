@@ -119,6 +119,7 @@ async def _mock_flow(field: str) -> AsyncIterator[tuple[str, dict]]:
             "journal": "Mock Journal",
             "year": "2023",
             "url": "https://pubmed.ncbi.nlm.nih.gov/00000001/",
+            "source": "pubmed",
         },
         {
             "pmid": "",
@@ -128,6 +129,7 @@ async def _mock_flow(field: str) -> AsyncIterator[tuple[str, dict]]:
             "journal": "Mock Crossref Journal",
             "year": "2024",
             "url": "https://doi.org/10.0000/mock.2023",
+            "source": "crossref",
         },
     ]
     yield ("references", {"items": items})
@@ -171,7 +173,7 @@ async def deep_research_rationale(inputs: dict) -> AsyncIterator[tuple[str, dict
             return
 
         yield ("references", {"items": [
-            {k: p.get(k, "") for k in ("pmid", "doi", "title", "first_author", "journal", "year", "url")}
+            {k: p.get(k, "") for k in ("pmid", "doi", "title", "first_author", "journal", "year", "url", "source")}
             for p in papers
         ]})
         yield ("status", {"message": f"已找到 {len(papers)} 篇真实文献，正在撰写立项依据草稿…"})
