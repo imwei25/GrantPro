@@ -156,6 +156,19 @@ try {
   const editedTxt = await page.getByTestId("result-text").innerText().catch(() => "");
   ok("结果就地编辑生效", editedTxt.includes(MARK), editedTxt.slice(-30).replace(/\s+/g, " "));
 
+  // ---- AI 写作痕迹自检: 含套话的草稿应被标记, 干净文本显示通过 ----
+  await page.getByTestId("nav-polish").click();
+  await page.waitForTimeout(150);
+  await page.getByTestId("reset-btn").click();
+  await page.getByTestId("input-text").fill("综上所述，本研究具有重要的理论意义和现实意义，毋庸置疑，由此可见其价值。");
+  await page.waitForTimeout(150);
+  const tellsTxt = await page.getByTestId("ai-tells").innerText().catch(() => "");
+  ok("AI 痕迹自检标记套话", /发现 \d+ 处/.test(tellsTxt) && /综上所述|理论意义/.test(tellsTxt), tellsTxt.slice(0, 40).replace(/\s+/g, " "));
+  await page.getByTestId("input-text").fill("本项目用类器官模型测量代谢物对神经元的作用，并以小鼠验证早期干预效果。");
+  await page.waitForTimeout(150);
+  const tellsOk = await page.getByTestId("ai-tells").innerText().catch(() => "");
+  ok("AI 痕迹自检干净文本通过", /未发现明显/.test(tellsOk));
+
   // ---- 键盘提交: Ctrl+Enter 也能触发运行 ----
   await page.getByTestId("nav-polish").click();
   await page.waitForTimeout(150);

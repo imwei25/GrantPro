@@ -3,6 +3,7 @@ import { usePersistentState } from "../lib/usePersistentState";
 import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
 import { EXAMPLES } from "../lib/examples";
 import ResultPanel from "../components/ResultPanel";
+import AiTellsCheck from "../components/AiTellsCheck";
 import Dropzone from "../components/Dropzone";
 
 export default function PolishModule() {
@@ -64,6 +65,8 @@ export default function PolishModule() {
           </button>
         </div>
       </div>
+
+      <AiTellsCheck text={text} />
 
       <ResultPanel
         text={result}
