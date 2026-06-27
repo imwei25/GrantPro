@@ -72,7 +72,7 @@ def _build_context(papers: list[dict]) -> str:
 
 def _synthesis_messages(field: str, problem: str, papers: list[dict]) -> list[dict]:
     system = (
-        "你是国家自然科学基金申请书写作专家。下面提供的是从 PubMed 检索到的【真实文献】。"
+        "你是国家自然科学基金申请书写作专家。下面提供的是从 PubMed / Crossref 检索到的【真实文献】。"
         "请严格基于这些文献，为申请人撰写一份“立项依据”草稿，结构如下：\n"
         "## 一、研究背景与意义\n说明该方向的科学意义与应用价值。\n"
         "## 二、国内外研究现状\n综述代表性工作。每次引用文献时，必须使用 Markdown 超链接，"
@@ -92,18 +92,43 @@ def _synthesis_messages(field: str, problem: str, papers: list[dict]) -> list[di
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
+def verify_citations(full: str, papers: list[dict]) -> dict:
+    """引用回查: 正文引用的每个 PMID / DOI, 必须来自本次检索到的文献。
+    返回 {total, verified, unverified}; unverified 即疑似编造的标识(PMID 或 DOI)。"""
+    valid = {p["pmid"] for p in papers if p.get("pmid")} | {
+        p["doi"].lower() for p in papers if p.get("doi")
+    }
+    cited_pmids = set(re.findall(r"pubmed\.ncbi\.nlm\.nih\.gov/(\d+)", full))
+    cited_dois = {
+        d.lower().rstrip(".,);]") for d in re.findall(r"doi\.org/(10\.[^\s)\]]+)", full)
+    }
+    cited = cited_pmids | cited_dois
+    unverified = sorted(cited - valid)
+    return {"total": len(cited), "verified": len(cited & valid), "unverified": unverified}
+
+
 async def _mock_flow(field: str) -> AsyncIterator[tuple[str, dict]]:
     yield ("status", {"message": "正在生成 PubMed 检索式…"})
     yield ("status", {"message": "正在检索 PubMed…"})
     items = [
         {
             "pmid": "00000001",
+            "doi": "",
             "title": f"[MOCK] A study related to {field}",
             "first_author": "Smith J",
             "journal": "Mock Journal",
             "year": "2023",
             "url": "https://pubmed.ncbi.nlm.nih.gov/00000001/",
-        }
+        },
+        {
+            "pmid": "",
+            "doi": "10.0000/mock.2023",
+            "title": f"[MOCK] Cross-disciplinary work on {field}",
+            "first_author": "Doe A",
+            "journal": "Mock Crossref Journal",
+            "year": "2024",
+            "url": "https://doi.org/10.0000/mock.2023",
+        },
     ]
     yield ("references", {"items": items})
     yield ("status", {"message": "正在撰写立项依据草稿…"})
@@ -135,18 +160,19 @@ async def deep_research_rationale(inputs: dict) -> AsyncIterator[tuple[str, dict
         return
 
     try:
-        yield ("status", {"message": "正在生成 PubMed 检索式…"})
+        yield ("status", {"message": "正在生成文献检索式…"})
         queries = await _gen_queries(field, keywords, background)
 
-        yield ("status", {"message": f"正在检索 PubMed（{len(queries)} 个检索式）…"})
+        yield ("status", {"message": f"正在检索文献（PubMed / Crossref，{len(queries)} 个检索式）…"})
         papers = await search_literature(queries, per_query=6, cap=18)
 
         if not papers:
-            yield ("error", {"message": "未能从 PubMed 检索到相关文献，请尝试更换或细化关键词（建议用英文）。"})
+            yield ("error", {"message": "未能检索到相关文献，请尝试更换或细化关键词（建议用英文）。"})
             return
 
         yield ("references", {"items": [
-            {k: p[k] for k in ("pmid", "title", "first_author", "journal", "year", "url")} for p in papers
+            {k: p.get(k, "") for k in ("pmid", "doi", "title", "first_author", "journal", "year", "url")}
+            for p in papers
         ]})
         yield ("status", {"message": f"已找到 {len(papers)} 篇真实文献，正在撰写立项依据草稿…"})
 
@@ -155,15 +181,8 @@ async def deep_research_rationale(inputs: dict) -> AsyncIterator[tuple[str, dict
             full += piece
             yield ("delta", {"text": piece})
 
-        # 引用自动核验: 正文里引用的每个 PubMed 链接, 必须来自本次检索到的文献。
-        valid = {p["pmid"] for p in papers}
-        cited = set(re.findall(r"pubmed\.ncbi\.nlm\.nih\.gov/(\d+)", full))
-        unverified = sorted(cited - valid)
-        yield ("verify", {
-            "total": len(cited),
-            "verified": len(cited & valid),
-            "unverified": unverified,
-        })
+        # 引用自动核验: 正文引用的每个 PMID / DOI 链接, 必须来自本次检索到的文献。
+        yield ("verify", verify_citations(full, papers))
         yield ("done", {})
     except Exception as e:  # noqa: BLE001
         yield ("error", {"message": f"调研过程出错：{e}"})

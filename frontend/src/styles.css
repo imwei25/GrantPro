@@ -774,6 +774,15 @@ select:focus {
   color: var(--text-dim);
   font-style: italic;
 }
+.ref-src {
+  margin-left: 8px;
+  font-size: 11px;
+  color: var(--text-dim);
+  border: 1px solid var(--glass-line);
+  border-radius: 5px;
+  padding: 1px 6px;
+  vertical-align: middle;
+}
 .verify-ok,
 .verify-bad {
   margin-top: 14px;

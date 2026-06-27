@@ -213,3 +213,15 @@
 - 相似已立项项目查重提示（受 NSFC 立项数据可得性限制，中高成本）。
 - 指南条目解析 + 完成度追踪清单（复用现有文档抽取 + 自查清单）。
 - 待核实后再做：2026 正文是否重构为「立项依据/研究内容/研究基础」三大板块——若属实可调整汇总导出模板（需先逐字核对官方指南 PDF）。
+
+---
+
+## 轮次 5（用户要求继续）
+
+落地调研里"中成本、高价值、可 mock 验证"的首选：多文献源。
+
+### [轮次 5 · T2] 立项依据多文献源：新增 Crossref（覆盖非医学全学科）
+- 现状/问题：立项依据只检索 PubMed（生物医学为主）；国自然占多数的非医学学科（材料/物理/化学/工程/生态）几乎检索不到文献，文献接地形同虚设。
+- 改进：`literature.py` 新增 `crossref_search()`（全学科、免费、无需 key，礼貌池带 mailto），与 PubMed 同构 schema（用 DOI 作标识）；`search_literature` 重构为多源检索 + 按标题归一跨源去重（PubMed 优先）；PubMed 记录补 DOI 提取。`rationale.py` 文案/引用核验改为同时支持 PMID+DOI，并把核验逻辑抽成可测的 `verify_citations()`；references 负载带 `doi`、`source`。前端 `Reference` 加 `doi`、参考文献标注来源（PubMed/Crossref）、未核验项按 DOI/PMID 智能链接。
+- 验证：mock=✅ 单测=✅ `test_literature` 16/16（Crossref 解析/去 JATS/空年份防 None/跨源去重）+ 新增 `test_rationale` 8/8（PMID/DOI 大小写、真假混合核验）真实测试=✅ 36/36（"参考文献含 Crossref 源"）。**真实 Crossref API 实测**：以"perovskite solar cell""graphene oxide membrane"等非医学查询返回真实带 DOI 论文（PubMed 搜不到），证明覆盖面扩展生效。
+- 提交：见下方 commit。

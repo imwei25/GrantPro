@@ -93,6 +93,7 @@ export async function streamPost(
 
 export interface Reference {
   pmid: string;
+  doi?: string;
   title: string;
   first_author: string;
   journal: string;

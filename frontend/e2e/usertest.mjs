@@ -109,6 +109,8 @@ try {
   await page.waitForTimeout(500);
   ok("[rationale] 出现引用核验区", await page.getByTestId("verify").isVisible().catch(() => false));
   ok("[rationale] 完成后有导出Word按钮", await page.getByTestId("export-docx-btn").isVisible().catch(() => false));
+  const refsText = await page.getByTestId("refs").innerText().catch(() => "");
+  ok("[rationale] 参考文献含 Crossref 源", /Crossref/.test(refsText));
 
   // ---- 键盘提交: Ctrl+Enter 也能触发运行 ----
   await page.getByTestId("nav-polish").click();

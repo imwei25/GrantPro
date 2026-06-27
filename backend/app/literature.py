@@ -1,15 +1,19 @@
-"""PubMed 文献检索客户端(NCBI E-utilities)。
+"""文献检索客户端(多源: PubMed + Crossref)。
 
 用于“立项依据”的文献接地: 实际检索真实文献, 供 LLM 梳理国内外研究现状与不足,
-并生成可点击的 PubMed 链接。E-utilities 免费, 无需 key(限速 3 次/秒)。
+并生成可点击的链接。两个数据源均免费、无需 key:
+  - PubMed(NCBI E-utilities): 生物医学为主, 限速 3 次/秒(有 api_key 则 10 次/秒);
+  - Crossref: 覆盖全学科(材料/物理/化学/工程/生态等), 国自然多数非医学学科靠它接地。
+两源结果按标题归一去重后合并。
 
 注意: 国自然申请书要求“必须人工核实生成式 AI 生成的信息与参考文献的真实性”。
-本模块抓取的是真实存在的 PubMed 文献, 并在正文生成后做引用回查, 把“编造文献”的
-风险降到最低; 但最终仍需申请人本人核对后使用。
+本模块抓取的是真实存在的文献(带 PMID/DOI), 并在正文生成后做引用回查, 把“编造文献”
+的风险降到最低; 但最终仍需申请人本人核对后使用。
 """
 from __future__ import annotations
 
 import asyncio
+import re
 import time
 import xml.etree.ElementTree as ET
 
@@ -18,8 +22,18 @@ import httpx
 from .config import settings
 
 _BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+_CROSSREF = "https://api.crossref.org/works"
 _TOOL = "nsfc-grant-assistant"
-_UA = "nsfc-grant-assistant/0.1 (PubMed literature grounding; +https://github.com/imwei25/GrantPro)"
+_UA = "nsfc-grant-assistant/0.1 (literature grounding; +https://github.com/imwei25/GrantPro)"
+
+
+def doi_url(doi: str) -> str:
+    return f"https://doi.org/{doi}"
+
+
+def _norm_title(title: str) -> str:
+    """标题归一(小写、去非字母数字)用于跨源去重。"""
+    return re.sub(r"[^a-z0-9]+", "", (title or "").lower())
 
 # NCBI 限速: 无 api_key 时 3 次/秒, 有 key 时 10 次/秒。留余量取 2.5 / 8 次每秒。
 # 用一个进程级最小间隔 + 锁来串行化, 避免一次立项依据连发多请求被 429。
@@ -126,40 +140,143 @@ async def efetch(client: httpx.AsyncClient, pmids: list[str]) -> list[dict]:
         year = _text(art.find(".//JournalIssue/PubDate/Year")) or _text(
             art.find(".//JournalIssue/PubDate/MedlineDate")
         )
+        # DOI(若有): 用于引用回查时同时支持 PMID 与 DOI 两种链接形式。
+        doi = ""
+        for eid in art.findall(".//ELocationID"):
+            if eid.get("EIdType") == "doi":
+                doi = _text(eid)
+                break
+        if not doi:
+            for aid in art.findall(".//ArticleId"):
+                if aid.get("IdType") == "doi":
+                    doi = _text(aid)
+                    break
         if not pmid or not title:
             continue
         papers.append(
             {
                 "pmid": pmid,
+                "doi": doi,
                 "title": title,
                 "abstract": abstract,
                 "first_author": first_author,
                 "journal": journal,
                 "year": year,
                 "url": pubmed_url(pmid),
+                "source": "pubmed",
             }
         )
     return papers
 
 
-async def search_literature(queries: list[str], per_query: int = 6, cap: int = 18) -> list[dict]:
-    """对多个检索式检索并合并去重, 返回带摘要的论文列表。"""
+async def crossref_search(client: httpx.AsyncClient, query: str, rows: int = 6) -> list[dict]:
+    """检索 Crossref(全学科), 返回与 PubMed 同构的论文记录(用 DOI 作标识)。"""
+    params = {
+        "query": query,
+        "rows": str(rows),
+        "select": "DOI,title,author,issued,container-title,abstract",
+    }
+    email = getattr(settings, "ncbi_email", "") or ""
+    if email:
+        params["mailto"] = email  # Crossref 礼貌池: 提供联系邮箱可获更稳定限速
+    r = await _throttled_get(client, _CROSSREF, params)
+    items = (r.json().get("message") or {}).get("items") or []
+    papers: list[dict] = []
+    for it in items:
+        doi = (it.get("DOI") or "").strip()
+        title_list = it.get("title") or []
+        title = (title_list[0] if title_list else "").strip()
+        if not doi or not title:
+            continue
+        authors = it.get("author") or []
+        first_author = ""
+        if authors:
+            a = authors[0]
+            family = (a.get("family") or "").strip()
+            given = (a.get("given") or "").strip()
+            initials = "".join(p[0] for p in given.split() if p)
+            first_author = f"{family} {initials}".strip() or family
+        parts = ((it.get("issued") or {}).get("date-parts") or [[]])
+        # Crossref 偶尔返回 date-parts: [[null]], 需防 None
+        year = str(parts[0][0]) if parts and parts[0] and parts[0][0] else ""
+        ct = it.get("container-title") or []
+        journal = ct[0] if ct else ""
+        abstract = re.sub(r"<[^>]+>", " ", it.get("abstract") or "").strip()  # 去 JATS 标签
+        papers.append(
+            {
+                "pmid": "",
+                "doi": doi,
+                "title": title,
+                "abstract": abstract,
+                "first_author": first_author,
+                "journal": journal,
+                "year": year,
+                "url": doi_url(doi),
+                "source": "crossref",
+            }
+        )
+    return papers
+
+
+async def _pubmed_collect(client: httpx.AsyncClient, queries: list[str], per_query: int, cap: int) -> list[dict]:
     seen: set[str] = set()
     collected: list[str] = []
-    async with httpx.AsyncClient(timeout=httpx.Timeout(30.0)) as client:
-        for q in queries:
-            try:
-                ids = await esearch(client, q, retmax=per_query)
-            except Exception:  # noqa: BLE001
-                continue
-            for pid in ids:
-                if pid not in seen:
-                    seen.add(pid)
-                    collected.append(pid)
-            if len(collected) >= cap:
-                break
-        collected = collected[:cap]
+    for q in queries:
         try:
-            return await efetch(client, collected)
+            ids = await esearch(client, q, retmax=per_query)
         except Exception:  # noqa: BLE001
-            return []
+            continue
+        for pid in ids:
+            if pid not in seen:
+                seen.add(pid)
+                collected.append(pid)
+        if len(collected) >= cap:
+            break
+    try:
+        return await efetch(client, collected[:cap])
+    except Exception:  # noqa: BLE001
+        return []
+
+
+async def _crossref_collect(client: httpx.AsyncClient, queries: list[str], per_query: int, cap: int) -> list[dict]:
+    out: list[dict] = []
+    for q in queries:
+        try:
+            out += await crossref_search(client, q, rows=per_query)
+        except Exception:  # noqa: BLE001
+            continue
+        if len(out) >= cap:
+            break
+    return out[:cap]
+
+
+def _merge_dedup(groups: list[list[dict]], cap: int) -> list[dict]:
+    """跨源按标题归一去重合并; 先到先得(PubMed 优先), 截断到 cap。"""
+    out: list[dict] = []
+    seen: set[str] = set()
+    for group in groups:
+        for p in group:
+            key = _norm_title(p.get("title", ""))
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            out.append(p)
+            if len(out) >= cap:
+                return out
+    return out
+
+
+async def search_literature(
+    queries: list[str],
+    per_query: int = 6,
+    cap: int = 18,
+    sources: tuple[str, ...] = ("pubmed", "crossref"),
+) -> list[dict]:
+    """对多个检索式检索 PubMed + Crossref, 跨源按标题去重合并, 返回带摘要的论文列表。"""
+    async with httpx.AsyncClient(timeout=httpx.Timeout(30.0)) as client:
+        groups: list[list[dict]] = []
+        if "pubmed" in sources:
+            groups.append(await _pubmed_collect(client, queries, per_query, cap))
+        if "crossref" in sources:
+            groups.append(await _crossref_collect(client, queries, per_query, cap))
+    return _merge_dedup(groups, cap)

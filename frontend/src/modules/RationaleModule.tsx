@@ -153,14 +153,15 @@ export default function RationaleModule({ goto }: { goto: Goto }) {
 
       {refs.length > 0 && (
         <details className="refs" open data-testid="refs">
-          <summary>检索到的真实文献（{refs.length} 篇，点击可打开 PubMed）</summary>
+          <summary>检索到的真实文献（{refs.length} 篇，来自 PubMed / Crossref，点击可打开原文）</summary>
           <ol className="ref-list">
             {refs.map((r) => (
-              <li key={r.pmid}>
+              <li key={r.url}>
                 <a href={r.url} target="_blank" rel="noreferrer">
                   {r.first_author} ({r.year}). {r.title}
                 </a>
                 {r.journal && <span className="ref-journal"> — {r.journal}</span>}
+                <span className="ref-src">{r.pmid ? "PubMed" : r.doi ? "Crossref" : ""}</span>
               </li>
             ))}
           </ol>
@@ -224,11 +225,15 @@ export default function RationaleModule({ goto }: { goto: Goto }) {
         ) : (
           <div className="verify-bad" data-testid="verify">
             ⚠ 引用核验：发现 {verify.unverified.length} 处引用未出现在检索结果中，可能为编造，请务必核实：
-            {verify.unverified.map((pmid) => (
-              <a key={pmid} href={`https://pubmed.ncbi.nlm.nih.gov/${pmid}/`} target="_blank" rel="noreferrer">
-                PMID {pmid}
-              </a>
-            ))}
+            {verify.unverified.map((id) => {
+              const isDoi = id.startsWith("10.");
+              const href = isDoi ? `https://doi.org/${id}` : `https://pubmed.ncbi.nlm.nih.gov/${id}/`;
+              return (
+                <a key={id} href={href} target="_blank" rel="noreferrer">
+                  {isDoi ? `DOI ${id}` : `PMID ${id}`}
+                </a>
+              );
+            })}
           </div>
         )
       )}
