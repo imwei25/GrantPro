@@ -70,6 +70,7 @@ export default function PolishModule() {
         running={running}
         error={error}
         onStop={stop}
+        onTextChange={setResult}
         exportName="润色稿"
         docxTitle="润色稿"
         placeholder="润色后的文本、修改说明与 AI 使用标注会显示在这里。"

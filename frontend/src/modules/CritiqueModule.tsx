@@ -123,6 +123,7 @@ export default function CritiqueModule({ goto }: { goto: Goto }) {
         running={running}
         error={error}
         onStop={stop}
+        onTextChange={setText}
         exportName="选题诊断"
         placeholder="创新性评估、科学问题属性、致命硬伤会显示在这里。"
         nextLabel="用此选题写立项依据 →"

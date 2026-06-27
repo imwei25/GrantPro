@@ -130,6 +130,18 @@ try {
   await page.getByTestId("run-btn").click();
   await page.getByTestId("result-text").filter({ hasText: "[MOCK]" }).waitFor({ timeout: 15000 }).catch(() => {});
 
+  // ---- 结果就地编辑: 编辑 -> 追加文本 -> 完成 -> 渲染结果反映改动 ----
+  await page.getByTestId("edit-btn").click();
+  await page.getByTestId("result-edit").waitFor({ timeout: 5000 }).catch(() => {});
+  const MARK = "【我的手动补充】";
+  await page.getByTestId("result-edit").focus();
+  await page.keyboard.press("End");
+  await page.keyboard.type(MARK);
+  await page.getByTestId("edit-btn").click(); // 完成编辑
+  await page.waitForTimeout(150);
+  const editedTxt = await page.getByTestId("result-text").innerText().catch(() => "");
+  ok("结果就地编辑生效", editedTxt.includes(MARK), editedTxt.slice(-30).replace(/\s+/g, " "));
+
   // ---- 键盘提交: Ctrl+Enter 也能触发运行 ----
   await page.getByTestId("nav-polish").click();
   await page.waitForTimeout(150);

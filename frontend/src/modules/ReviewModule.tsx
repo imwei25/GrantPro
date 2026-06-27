@@ -84,6 +84,7 @@ export default function ReviewModule() {
         running={running}
         error={error}
         onStop={stop}
+        onTextChange={setResult}
         exportName="评审意见"
         placeholder="三位评审的意见、评级与致命问题汇总会显示在这里。"
       />

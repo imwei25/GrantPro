@@ -111,6 +111,7 @@ export default function SchemeModule({ goto }: { goto: Goto }) {
         running={running}
         error={error}
         onStop={stop}
+        onTextChange={setText}
         exportName="研究方案"
         docxTitle="研究方案"
         placeholder="研究目标、内容、关键科学问题、技术路线会显示在这里。"

@@ -15,6 +15,8 @@ interface Props {
   onNext?: () => void;
   // 是否提供“导出 Word”按钮
   docxTitle?: string;
+  // 提供则结果可就地编辑(改后写回持久化, 导出/串联自动用改后的版本)
+  onTextChange?: (t: string) => void;
 }
 
 // 统一的结果展示区: 流式文本 + 复制 + 导出(MD/Word) + 串联 + 停止 + 状态。
@@ -28,8 +30,10 @@ export default function ResultPanel({
   nextLabel,
   onNext,
   docxTitle,
+  onTextChange,
 }: Props) {
   const [copyState, setCopyState] = useState<"idle" | "ok" | "fail">("idle");
+  const [editing, setEditing] = useState(false);
 
   const copy = async () => {
     const ok = await copyText(text);
@@ -53,6 +57,15 @@ export default function ResultPanel({
           {running && onStop && (
             <button className="btn-ghost" onClick={onStop} data-testid="stop-btn">
               停止
+            </button>
+          )}
+          {text && !running && onTextChange && (
+            <button
+              className={`btn-ghost ${editing ? "active" : ""}`}
+              onClick={() => setEditing((v) => !v)}
+              data-testid="edit-btn"
+            >
+              {editing ? "完成编辑" : "编辑"}
             </button>
           )}
           {text && !running && nextLabel && onNext && (
@@ -82,14 +95,24 @@ export default function ResultPanel({
           {error}
         </div>
       ) : (
-        <div className="result-text" data-testid="result-text">
-          {text ? (
-            <Markdown>{text}</Markdown>
-          ) : (
-            <span className="result-placeholder">{placeholder ?? "结果会显示在这里。"}</span>
-          )}
-          {running && <span className="cursor-blink">▍</span>}
-        </div>
+        editing && onTextChange ? (
+          <textarea
+            className="result-edit"
+            data-testid="result-edit"
+            value={text}
+            onChange={(e) => onTextChange(e.target.value)}
+            spellCheck={false}
+          />
+        ) : (
+          <div className="result-text" data-testid="result-text">
+            {text ? (
+              <Markdown>{text}</Markdown>
+            ) : (
+              <span className="result-placeholder">{placeholder ?? "结果会显示在这里。"}</span>
+            )}
+            {running && <span className="cursor-blink">▍</span>}
+          </div>
+        )
       )}
     </div>
   );
