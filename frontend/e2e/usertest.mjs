@@ -39,6 +39,8 @@ try {
   await page.getByTestId("compliance-panel").locator("summary").click().catch(() => {});
   const checkCount = await page.getByTestId("compliance-checklist").locator("li").count().catch(() => 0);
   ok("自查清单有条目", checkCount >= 5, `共 ${checkCount} 条`);
+  const annoText = await page.getByTestId("compliance-panel").innerText().catch(() => "");
+  ok("标注自动预填模型名与年份", /deepseek|claude|gpt|模型/i.test(annoText) && /20\d\d年/.test(annoText));
   await page.getByTestId("copy-annotation-btn").click().catch(() => {});
   await page.waitForTimeout(150);
   const annoLabel = await page.getByTestId("copy-annotation-btn").innerText().catch(() => "");

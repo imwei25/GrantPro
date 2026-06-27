@@ -292,4 +292,10 @@
 - 来源：派 agent 的首选第 2 条。NSFC 必填项、流水线肉眼可见的缺口；摘要最该由全文反向凝练（信息都在工作台）。
 - 改进：后端 `prompts.py` 加 `build_abstract`（中文摘要~400字 + 关键词 + 英文 Abstract/Keywords，铁律：只压缩提炼、不新增、不编造）并注册进 `_BUILDERS`；新增 `lib/workspace.ts`（`WORKSPACE_SECTIONS` + `assembleBody()` 复用装配逻辑）；新增 `AbstractModule.tsx`（含「拉取工作台全文」一键带入各节、填入示例、可编辑结果、导出），走既有 `/api/run` 流式通道零新端点；`App.tsx` 加 06 导航卡 + `doc` 图标 + 渲染。
 - 验证：mock=✅ 单测=✅ `test_prompts` 17/17（中文摘要/英文/关键词/不编造）真实测试=✅ 47/47（"流水线6张卡片"+"[abstract] 示例填好/流式输出到达"）；首页截图确认六卡片布局无破版。
+- 提交：`0e09281`（+ 文档同步 `d70a937`）
+
+### [轮次 14 · T5] AI 使用标注自动预填（消除手填摩擦）
+- 来源：派 agent 的第 3 条（S 级）。标注模板的工具名/时间/环节占位符，系统其实已知道（配置的模型、当前日期、用过哪些模块），却让用户手填。
+- 改进：后端 `compliance_info(tool, when, scenes)` 默认用 `settings.model` 作工具名、当前年月作使用时间；`/api/compliance` 加可选 query 参数；前端 `lib/workspace.ts` 加 `usedScenes()`（按已有结果的模块推断"文献检索/思路梳理/语言润色"），`CompliancePanel` 与 `WorkspaceSummary` 取标注时带上 `?scenes=`。
+- 验证：mock=✅ 单测=✅ `test_prompts` 20/20（自动填模型名/当前年份/显式参数可覆盖）真实测试=✅ 48/48（"标注自动预填模型名与年份"）；curl 实测 `/api/compliance?scenes=文献检索` 返回「名称及版本：deepseek-chat；使用时间：2026年6月…文献检索」。
 - 提交：见下方 commit。

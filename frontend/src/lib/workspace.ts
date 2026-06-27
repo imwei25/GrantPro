@@ -9,6 +9,18 @@ export const WORKSPACE_SECTIONS = [
   { id: "polish", title: "润色合规", key: "polish:result" },
 ] as const;
 
+// 根据"实际用过哪些模块"推断 AI 使用环节, 用于自动预填合规标注。无则返回空串。
+export function usedScenes(): string {
+  const has = (key: string) => (readPersisted<string>(key, "") || "").trim().length > 0;
+  const scenes: string[] = [];
+  if (has("rationale:result")) scenes.push("文献检索与整理");
+  if (["critique:result", "scheme:result", "review:result", "abstract:result"].some(has)) {
+    scenes.push("研究思路梳理与自检");
+  }
+  if (has("polish:result")) scenes.push("语言表达润色");
+  return scenes.join("、");
+}
+
 // 把已完成各节(排除 excludeIds)拼成一段带小标题的全文。
 export function assembleBody(excludeIds: string[] = []): string {
   return WORKSPACE_SECTIONS.filter((s) => !excludeIds.includes(s.id))

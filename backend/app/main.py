@@ -60,8 +60,9 @@ async def health() -> dict:
 
 
 @app.get("/api/compliance")
-async def compliance() -> dict:
-    return compliance_info()
+async def compliance(tool: str = "", when: str = "", scenes: str = "") -> dict:
+    # 可选 query 参数用于自动预填 AI 使用标注(工具名/时间/使用环节)。
+    return compliance_info(tool=tool, when=when, scenes=scenes)
 
 
 def _sse(event: str, data: dict) -> str:

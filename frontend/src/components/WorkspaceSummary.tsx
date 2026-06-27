@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { readPersisted, writePersisted } from "../lib/usePersistentState";
 import { downloadText, downloadDocx, tsName } from "../lib/download";
 import { exportArchive } from "../lib/archive";
+import { usedScenes } from "../lib/workspace";
 import { apiUrl } from "../lib/api";
 import type { Reference } from "../lib/sse";
 import type { ModuleId } from "../App";
@@ -53,7 +54,7 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
 
   useEffect(() => {
     let cancelled = false;
-    fetch(apiUrl("/api/compliance"))
+    fetch(apiUrl("/api/compliance?scenes=" + encodeURIComponent(usedScenes())))
       .then((r) => r.json())
       .then((d) => {
         if (!cancelled) setAnnotation(d.annotation || "");

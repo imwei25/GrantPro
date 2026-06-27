@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import sys
 
-from app.compliance import build_annotation
+from app.compliance import build_annotation, compliance_info
+from app.config import settings
 from app.prompts import build_messages
 
 
@@ -45,6 +46,15 @@ def main() -> int:
          and build_annotation().endswith("【说明结束】")),
         ("标注声明未直接生成整段材料", "未直接使用生成式人工智能生成的整段" in build_annotation()),
     ]
+
+    # 合规信息自动预填: 默认用配置模型作工具名、当前年份作使用时间
+    import datetime
+    settings.model = "deepseek-chat"
+    info = compliance_info()
+    checks.append(("标注自动填模型名", "deepseek-chat" in info["annotation"]))
+    checks.append(("标注自动填当前年份", f"{datetime.date.today().year}年" in info["annotation"]))
+    info2 = compliance_info(tool="Claude Opus", when="2026年6月", scenes="文献检索")
+    checks.append(("标注可被显式参数覆盖", "Claude Opus" in info2["annotation"] and "2026年6月" in info2["annotation"] and "文献检索" in info2["annotation"]))
 
     failed = [n for n, ok in checks if not ok]
     for n, ok in checks:

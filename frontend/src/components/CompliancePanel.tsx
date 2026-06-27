@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiUrl } from "../lib/api";
 import { copyText } from "../lib/clipboard";
+import { usedScenes } from "../lib/workspace";
 
 interface ComplianceInfo {
   annotation: string;
@@ -16,7 +17,7 @@ export default function CompliancePanel() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(apiUrl("/api/compliance"))
+    fetch(apiUrl("/api/compliance?scenes=" + encodeURIComponent(usedScenes())))
       .then((r) => r.json())
       .then((d) => {
         if (!cancelled) setInfo(d);

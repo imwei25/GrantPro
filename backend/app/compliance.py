@@ -12,6 +12,10 @@
 """
 from __future__ import annotations
 
+import datetime
+
+from .config import settings
+
 # 申请人据实填写后附于相关材料的标识模板。
 # 依科技部《负责任研究行为规范指引》, 披露应包含工具名称、版本与使用时间;
 # 标识置于文本起止位置(【生成式人工智能使用说明】…【说明结束】)。
@@ -51,9 +55,14 @@ def build_annotation(
     )
 
 
-def compliance_info() -> dict:
+def compliance_info(tool: str = "", when: str = "", scenes: str = "") -> dict:
+    # 自动预填: 工具名用配置的模型、使用时间用当前月份, 减少用户手填。
+    # 留空的字段才用默认值; 前端可按"实际用过的模块"传入 scenes。
+    auto_tool = tool.strip() or (settings.model or "")
+    today = datetime.date.today()
+    auto_when = when.strip() or f"{today.year}年{today.month}月"
     return {
-        "annotation": build_annotation(),
+        "annotation": build_annotation(tool=auto_tool, when=auto_when, scenes=scenes),
         "checklist": CHECKLIST,
         "notice": (
             "提示：基金委规定不得直接使用 AI 生成的申请书，AI 仅可用于检索、整理、润色等辅助环节，"
