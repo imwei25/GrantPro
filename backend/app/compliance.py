@@ -13,14 +13,18 @@
 from __future__ import annotations
 
 # 申请人据实填写后附于相关材料的标识模板。
+# 依科技部《负责任研究行为规范指引》, 披露应包含工具名称、版本与使用时间;
+# 标识置于文本起止位置(【生成式人工智能使用说明】…【说明结束】)。
 ANNOTATION_TEMPLATE = (
     "【生成式人工智能使用说明】本{material}在撰写过程中使用了生成式人工智能工具"
-    "（{tool}）辅助完成以下环节：{scenes}。所用 AI 仅作为辅助手段，"
-    "其生成的文字、数据与参考文献均已由申请人逐一核实其真实性与准确性，"
-    "核心科学思想、研究方案与结论由申请人独立完成并负责。【说明结束】"
+    "（名称及版本：{tool}；使用时间：{when}）辅助完成以下环节：{scenes}。"
+    "所用 AI 仅作为辅助手段，其生成的文字、数据与参考文献均已由申请人逐一核实其真实性与准确性；"
+    "核心科学思想、研究方案与结论由申请人独立完成并负责，"
+    "本{material}未直接使用生成式人工智能生成的整段申请材料。【说明结束】"
 )
 
 DEFAULT_SCENES = "文献检索与整理、研究动态梳理、语言表达润色"
+DEFAULT_WHEN = "（请据实填写，如 2026 年 6 月）"
 
 # 提交前自查清单(对照基金委红线)。
 CHECKLIST = [
@@ -33,11 +37,17 @@ CHECKLIST = [
 ]
 
 
-def build_annotation(material: str = "申请书", tool: str = "大语言模型", scenes: str = "") -> str:
+def build_annotation(
+    material: str = "申请书",
+    tool: str = "大语言模型（请据实填写名称与版本）",
+    scenes: str = "",
+    when: str = "",
+) -> str:
     return ANNOTATION_TEMPLATE.format(
         material=material.strip() or "申请书",
-        tool=tool.strip() or "大语言模型",
+        tool=tool.strip() or "大语言模型（请据实填写名称与版本）",
         scenes=scenes.strip() or DEFAULT_SCENES,
+        when=when.strip() or DEFAULT_WHEN,
     )
 
 

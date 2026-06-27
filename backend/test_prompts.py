@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import sys
 
+from app.compliance import build_annotation
 from app.prompts import build_messages
 
 
@@ -28,6 +29,12 @@ def main() -> int:
         ("scheme 含技术路线", "技术路线" in _system("scheme", {"idea": "x"})),
         ("review 含评审", "评审" in _system("review", {"text": "x"})),
         ("polish 含标注", "标注" in _system("polish", {"text": "x"})),
+        # AI 使用标注: 披露名称/版本/使用时间, 含起止标识, 声明未直接生成整段材料
+        ("标注含使用时间", "使用时间" in build_annotation()),
+        ("标注含名称及版本", "名称及版本" in build_annotation()),
+        ("标注有起止标识", build_annotation().startswith("【生成式人工智能使用说明】")
+         and build_annotation().endswith("【说明结束】")),
+        ("标注声明未直接生成整段材料", "未直接使用生成式人工智能生成的整段" in build_annotation()),
     ]
 
     failed = [n for n, ok in checks if not ok]

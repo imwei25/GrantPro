@@ -120,7 +120,7 @@ def build_polish(inputs: dict) -> list[dict]:
         "## 二、主要修改说明\n（列出你做的关键调整，以及需要申请人自行确认/补充之处）\n"
         "## 三、生成式 AI 使用标注（按基金委要求附于材料）\n"
         f"（在此给出一段可据实修改后采用的标注文字，模板参考：{annotation}）\n"
-        "注意：标注需提醒申请人根据真实使用情况修改 AI 工具名称与使用环节。"
+        "注意：标注需提醒申请人据实修改 AI 工具的名称、版本、使用时间与使用环节。"
     )
     user = "以下是待润色文本：\n\n" + (inputs.get("text", "") or "").strip()
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
