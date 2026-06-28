@@ -21,6 +21,9 @@ interface Props {
   idPrefix?: string;
   // 建议字数区间 [min, max]; 提供则显示篇幅仪表与超纲/不足提示
   targetRange?: [number, number];
+  // 用于篇幅区间判定与计数显示的"有效字数"; 不提供则取整块文本长度。
+  // 多语种/多段产出(如摘要含中文摘要+英文 Abstract)应只对相关段计数, 否则会系统性误报。
+  measureLen?: number;
 }
 
 // 统一的结果展示区: 流式文本 + 复制 + 导出(MD/Word) + 串联 + 停止 + 状态。
@@ -37,14 +40,17 @@ export default function ResultPanel({
   onTextChange,
   idPrefix,
   targetRange,
+  measureLen,
 }: Props) {
   const [copyState, setCopyState] = useState<"idle" | "ok" | "fail">("idle");
   const [editing, setEditing] = useState(false);
   const tid = (name: string) => (idPrefix ? `${idPrefix}-${name}` : name);
 
   const len = text.trim().length;
+  // 用于篇幅判定/显示的有效字数: 默认整块, 摘要等多段产出由模块传入只含相关段的长度。
+  const measure = measureLen ?? len;
   // 篇幅状态: 不足 / 合适 / 超纲(仅在提供 targetRange 时计算)
-  const lenState = !targetRange ? "" : len < targetRange[0] ? "short" : len > targetRange[1] ? "long" : "ok";
+  const lenState = !targetRange ? "" : measure < targetRange[0] ? "short" : measure > targetRange[1] ? "long" : "ok";
 
   const copy = async () => {
     const ok = await copyText(text);
@@ -65,7 +71,7 @@ export default function ResultPanel({
           {running ? "生成中…" : error ? "出错了" : text ? "已完成" : "等待开始"}
           {text && (
             <span className={`result-count ${lenState}`} data-testid={tid("result-count")}>
-              {len} 字
+              {measure} 字
               {targetRange && (
                 <>
                   {" · 建议 "}

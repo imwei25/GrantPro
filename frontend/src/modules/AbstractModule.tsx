@@ -5,6 +5,14 @@ import { assembleBody } from "../lib/workspace";
 import { EXAMPLES } from "../lib/examples";
 import ResultPanel from "../components/ResultPanel";
 
+// 篇幅区间[300,450]只针对"## 中文摘要"这一段; build_abstract 同时产出英文
+// Abstract 与中英关键词, 若按整块计数会系统性误报"偏长"。提取该段长度, 取不到(如
+// 流式未到/演示文案)则回退整块, 保持计数始终可见。
+function zhAbstractLen(text: string): number {
+  const m = text.match(/##\s*中文摘要\s*\r?\n([\s\S]*?)(?:\r?\n##\s|$)/);
+  return (m ? m[1] : text).trim().length;
+}
+
 // 项目摘要: NSFC 必填项, 最宜由全文反向凝练。输入可一键从工作台各节拉取。
 export default function AbstractModule() {
   const [source, setSource] = usePersistentState("abstract:source", "");
@@ -73,6 +81,7 @@ export default function AbstractModule() {
         exportName="项目摘要"
         docxTitle="项目摘要"
         targetRange={[300, 450]}
+        measureLen={zhAbstractLen(result)}
         placeholder="中文摘要、关键词、英文摘要会显示在这里。"
       />
     </div>

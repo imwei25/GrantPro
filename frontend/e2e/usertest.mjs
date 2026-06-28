@@ -136,6 +136,19 @@ try {
   await page.waitForTimeout(150);
   const countTxt = await page.getByTestId("result-count").innerText().catch(() => "");
   ok("[abstract] 显示篇幅仪表(字数+建议区间)", /字/.test(countTxt) && /建议 300–450/.test(countTxt), countTxt.replace(/\s+/g, " "));
+  // 篇幅仪表只对"## 中文摘要"段计数: 一份 ~400 字中文摘要 + 长英文 Abstract 的真实结构,
+  // 应判为合适(无 偏短/偏长), 验证不再被英文段拖成"偏长"。
+  try {
+    const zh = "本研究针对该领域关键科学问题展开系统探索。".repeat(20); // ~420 字, 落在[300,450]
+    const enAbs = "This abstract corresponds to the Chinese version and is intentionally long. ".repeat(12);
+    const crafted = `## 中文摘要\n${zh}\n\n## 关键词\n甲；乙；丙\n\n## Abstract\n${enAbs}\n\n## Keywords\nalpha; beta; gamma`;
+    await page.getByTestId("edit-btn").click();
+    await page.getByTestId("result-edit").fill(crafted);
+    await page.getByTestId("edit-btn").click(); // 完成编辑
+    await page.waitForTimeout(100);
+    const t2 = await page.getByTestId("result-count").innerText().catch(() => "");
+    ok("[abstract] 仪表只测中文摘要段(长英文不误报偏长)", /建议 300–450/.test(t2) && !/偏长/.test(t2) && !/偏短/.test(t2), t2.replace(/\s+/g, " "));
+  } catch (e) { ok("[abstract] 仪表只测中文摘要段(长英文不误报偏长)", false, String(e).slice(0, 80)); }
 
   // ---- 立项依据 rationale (多阶段 SSE: status→references→delta→verify) ----
   await page.getByTestId("nav-rationale").click();
