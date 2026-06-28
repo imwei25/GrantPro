@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import sys
 
-from app.compliance import build_annotation, compliance_info
+from app.compliance import CHECKLIST, build_annotation, compliance_info
 from app.config import settings
 from app.prompts import build_messages
 
@@ -30,6 +30,10 @@ def main() -> int:
         ("scheme 含技术路线", "技术路线" in _system("scheme", {"idea": "x"})),
         ("scheme 含年度研究计划", "年度研究计划" in _system("scheme", {"idea": "x"})),
         ("scheme 含预期研究结果", "预期研究结果" in _system("scheme", {"idea": "x"})),
+        # 2026 申请书改版: 正文 30 页上限 + 立项依据/研究内容/研究基础 三板块
+        ("scheme 含 30 页上限提示", "30 页" in _system("scheme", {"idea": "x"})),
+        ("scheme 含三板块结构", "研究基础" in _system("scheme", {"idea": "x"})),
+        ("自查清单含 30 页上限", any("30 页" in c for c in CHECKLIST)),
         ("review 含评审", "评审" in _system("review", {"text": "x"})),
         ("review 含评分汇总", "评分汇总" in _system("review", {"text": "x"})),
         ("review 含共识弱点", "共识弱点" in _system("review", {"text": "x"})),
