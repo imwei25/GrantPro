@@ -97,17 +97,28 @@ def _synthesis_messages(field: str, problem: str, papers: list[dict]) -> list[di
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
+_S2_PAPER = r"semanticscholar\.org/paper/([0-9A-Za-z]+)"
+
+
 def verify_citations(full: str, papers: list[dict]) -> dict:
-    """引用回查: 正文引用的每个 PMID / DOI, 必须来自本次检索到的文献。
-    返回 {total, verified, unverified}; unverified 即疑似编造的标识(PMID 或 DOI)。"""
+    """引用回查: 正文引用的每个 PMID / DOI / Semantic Scholar paperId, 必须来自本次检索到的文献。
+    返回 {total, verified, unverified}; unverified 即疑似编造的标识。"""
     valid = {p["pmid"] for p in papers if p.get("pmid")} | {
         p["doi"].lower() for p in papers if p.get("doi")
     }
+    # Semantic Scholar 文献可能既无 DOI 又无 PMID, 仅有 semanticscholar.org/paper/<id> 链接;
+    # 把这些 paperId 也纳入可核验集合, 否则该来源的引用既不计 total 也不计 unverified——
+    # 会"逃逸核验", 给出虚假的"全部引用均来自真实文献"。
+    for p in papers:
+        m = re.search(_S2_PAPER, p.get("url", "") or "")
+        if m:
+            valid.add(m.group(1).lower())
     cited_pmids = set(re.findall(r"pubmed\.ncbi\.nlm\.nih\.gov/(\d+)", full))
     cited_dois = {
         d.lower().rstrip(".,);]") for d in re.findall(r"doi\.org/(10\.[^\s)\]]+)", full)
     }
-    cited = cited_pmids | cited_dois
+    cited_s2 = {s.lower() for s in re.findall(_S2_PAPER, full)}
+    cited = cited_pmids | cited_dois | cited_s2
     unverified = sorted(cited - valid)
     return {"total": len(cited), "verified": len(cited & valid), "unverified": unverified}
 

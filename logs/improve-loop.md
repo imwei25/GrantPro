@@ -431,4 +431,11 @@
 - 改进：`BODY_SECTIONS` 改为只含 2026 正文三板块 `[rationale, scheme, foundation]`（润色是「重写工具」非独立正文板块）；仪表文案改为「立项依据/研究方案/研究基础，不含选题诊断/评审/润色稿等非正文」；注释写明排除润色的理由。e2e 加守卫「正文页数不重复计入润色稿」（计数集到「研究基础」为止）。
 - 验证：build=✅ 真实测试=✅ Playwright **59/59**（仪表="正文约 0.5 页（立项依据/研究方案/研究基础，不含…润色稿等非正文)"，无 pageerror/console.error）。
 - 来源：本轮 agent 第 3 条。**不在** logs 清单（轮次 19 加页数估算时刻意排诊断/评审，却把 polish 当正文，未察觉与被润色章节重复）。
+- 提交：`1b7be68`
+
+### [轮次 21 · T2] 引用核验覆盖 Semantic Scholar 链接（堵住"逃逸核验"虚假安心）
+- 现状/问题：`verify_citations` 的 `valid` 集合与正文引用提取**只认 PMID 与 DOI**。但 `literature.py:semantic_scholar_search` 对既无 DOI 又无 PMID 的 S2 文献，`url = semanticscholar.org/paper/<id>`。若模型用该链接引用，既不命中 PMID 也不命中 DOI 正则——该引用**既不计入 total，也不进 unverified**，直接隐形；`RationaleModule` 的「✓ 正文 N 处引用均来自真实文献」可能给出**虚假安心**。今天 S2 受 `S2_API_KEY` 门控默认关闭，命中概率低；一旦用户配 key，核验对这一源就是盲的。
+- 改进：`verify_citations` 抽 `_S2_PAPER` 正则——从 papers 的 `url` 提取 S2 paperId 纳入 `valid`，并从正文提取 S2 链接纳入 `cited`（与 PMID/DOI 同等回查）。`test_rationale.py` PAPERS 加一条 S2 文献，正文加「真实 S2 链接（应核实）+ 伪造 S2 链接（应被捕获）」。
+- 验证：mock=✅（无回归）单测=✅ `test_rationale` **13/13**（新增「S2 paperId 命中真实文献」「捕获伪造 S2 链接(不再逃逸核验)」；total 6/verified 3/unverified 3）。
+- 来源：本轮 agent 第 4 条。**不在** logs 清单（轮次 6 加 S2 时只验证了解析，没验证核验闭环）。
 - 提交：见下方 commit。

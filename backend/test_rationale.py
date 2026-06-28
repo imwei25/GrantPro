@@ -14,6 +14,8 @@ from app.rationale import QUERY_SYSTEM, verify_citations
 PAPERS = [
     {"pmid": "12345678", "doi": "", "title": "PubMed one"},
     {"pmid": "", "doi": "10.1234/ABC", "title": "Crossref one"},  # DOI 存大写
+    # Semantic Scholar 文献: 既无 DOI 又无 PMID, 仅有 paperId 链接(标识藏在 url)
+    {"pmid": "", "doi": "", "title": "S2 one", "url": "https://www.semanticscholar.org/paper/abc123def"},
 ]
 
 
@@ -21,19 +23,23 @@ def main() -> int:
     full = (
         "见 [A et al., 2023](https://pubmed.ncbi.nlm.nih.gov/12345678/)，"
         "以及 [B et al., 2024](https://doi.org/10.1234/abc)。"  # 正文用小写 DOI
-        "另有可疑引用 [C](https://pubmed.ncbi.nlm.nih.gov/99999999/) 与 "
-        "[D](https://doi.org/10.9999/fake)。"
+        "再见 [E et al., 2022](https://www.semanticscholar.org/paper/abc123def)。"  # 真实 S2 链接
+        "另有可疑引用 [C](https://pubmed.ncbi.nlm.nih.gov/99999999/)、 "
+        "[D](https://doi.org/10.9999/fake) 与 "
+        "[F](https://www.semanticscholar.org/paper/deadbeef999)。"  # 伪造 S2 链接
     )
     v = verify_citations(full, PAPERS)
 
     checks = [
-        ("共识别 4 处引用", v["total"] == 4),
-        ("已核实 2 处", v["verified"] == 2),
+        ("共识别 6 处引用", v["total"] == 6),
+        ("已核实 3 处", v["verified"] == 3),
         ("PMID 大小写无关命中真实文献", "12345678" not in v["unverified"]),
         ("DOI 大小写无关命中真实文献", "10.1234/abc" not in v["unverified"]),
+        ("S2 paperId 命中真实文献", "abc123def" not in v["unverified"]),
         ("捕获伪造 PMID", "99999999" in v["unverified"]),
         ("捕获伪造 DOI", "10.9999/fake" in v["unverified"]),
-        ("unverified 恰为 2 个", len(v["unverified"]) == 2),
+        ("捕获伪造 S2 链接(不再逃逸核验)", "deadbeef999" in v["unverified"]),
+        ("unverified 恰为 3 个", len(v["unverified"]) == 3),
     ]
 
     # 无引用时不应误报
