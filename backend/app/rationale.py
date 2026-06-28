@@ -32,14 +32,19 @@ async def _complete(messages: list[dict], max_tokens: int = 300) -> str:
     return buf
 
 
+# 检索式生成的 system 提示词: 学科中立(不绑定 PubMed/MeSH), 同时服务 PubMed 与 Crossref。
+QUERY_SYSTEM = (
+    "你是跨学科科技文献检索专家。把用户的研究主题转化为 3 个英文检索式，"
+    "需同时适用于 PubMed 与 Crossref 等通用学术数据库（即不要绑定 PubMed 专有语法），"
+    "可使用布尔逻辑(AND/OR)，按学科酌情使用规范的领域术语或同义词，覆盖该主题的不同侧面。"
+    "只输出一个 JSON 字符串数组，不要任何解释。例如：[\"...\", \"...\", \"...\"]"
+)
+
+
 async def _gen_queries(field: str, keywords: str, background: str) -> list[str]:
     bg = background[:500]
     topic = field + (f"；关键词：{keywords}" if keywords else "") + (f"；背景：{bg}" if bg else "")
-    system = (
-        "你是医学/生物医学文献检索专家。把用户的研究主题转化为 3 个适合在 PubMed 检索的英文检索式，"
-        "可使用布尔逻辑(AND/OR)与必要的 MeSH 术语，覆盖该主题的不同侧面。"
-        "只输出一个 JSON 字符串数组，不要任何解释。例如：[\"...\", \"...\", \"...\"]"
-    )
+    system = QUERY_SYSTEM
     try:
         raw = await _complete(
             [{"role": "system", "content": system}, {"role": "user", "content": topic}],

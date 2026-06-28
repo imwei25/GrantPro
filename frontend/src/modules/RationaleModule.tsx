@@ -99,8 +99,9 @@ export default function RationaleModule({ goto }: { goto: Goto }) {
         <span className="eyebrow">02 · GROUND</span>
         <h1>立项依据 · 文献接地</h1>
         <p>
-          我会实际检索 <strong>PubMed</strong> 真实文献，据此撰写立项依据草稿（研究现状→不足→切入点），
-          引用均为可点击链接，并自动核验有无“编造文献”。<strong>所有引用仍需你本人复核。</strong>
+          我会实际检索 <strong>PubMed 与 Crossref</strong> 真实文献（覆盖医学及材料/物理/化学/工程等全学科），
+          据此撰写立项依据草稿（研究现状→不足→切入点），引用均为可点击链接，并自动核验有无“编造文献”。
+          <strong>所有引用仍需你本人复核。</strong>
         </p>
       </header>
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import sys
 
-from app.rationale import verify_citations
+from app.rationale import QUERY_SYSTEM, verify_citations
 
 PAPERS = [
     {"pmid": "12345678", "doi": "", "title": "PubMed one"},
@@ -39,6 +39,11 @@ def main() -> int:
     # 无引用时不应误报
     v2 = verify_citations("正文没有任何引用链接。", PAPERS)
     checks.append(("无引用时 total=0", v2["total"] == 0 and v2["unverified"] == []))
+
+    # 检索式生成应学科中立(服务 PubMed+Crossref 全学科), 不再绑定医学/PubMed/MeSH
+    checks.append(("检索式提示词跨学科", "跨学科" in QUERY_SYSTEM))
+    checks.append(("检索式提示词同时面向 Crossref", "Crossref" in QUERY_SYSTEM))
+    checks.append(("检索式提示词不绑定医学/MeSH", "医学" not in QUERY_SYSTEM and "MeSH" not in QUERY_SYSTEM))
 
     failed = [n for n, ok in checks if not ok]
     for n, ok in checks:
