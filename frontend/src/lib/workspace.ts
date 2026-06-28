@@ -22,6 +22,11 @@ export function usedScenes(): string {
   return scenes.join("、");
 }
 
+// "辅助产出": 选题诊断(对选题硬伤的吐槽/建议更换)与评审模拟(模拟评审意见)
+// 都不是申请书正文, 不应作为"全文"喂给 LLM(否则摘要会去凝练吐槽、评审会去评审
+// 一份已含自我批判的文本), 也不计入正文页数。与 WorkspaceSummary.BODY_SECTIONS 口径一致。
+export const AUXILIARY_IDS = ["critique", "review"] as const;
+
 // 把已完成各节(排除 excludeIds)拼成一段带小标题的全文。
 export function assembleBody(excludeIds: string[] = []): string {
   return WORKSPACE_SECTIONS.filter((s) => !excludeIds.includes(s.id))

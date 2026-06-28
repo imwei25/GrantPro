@@ -417,4 +417,11 @@
 - 改进：`ResultPanel` 新增 `measureLen?` prop（用于区间判定/计数显示的「有效字数」，默认整块）；`AbstractModule` 提取「## 中文摘要」段长度传入（取不到则回退整块，保证演示/流式中计数仍可见）。e2e 加守卫：编辑面板灌入「~420字中文摘要 + 长英文 Abstract」真实结构，断言判为合适（无 偏短/偏长）。
 - 验证：build=✅ 真实测试=✅ Playwright **57/57**（新增「仪表只测中文摘要段(长英文不误报偏长) :: 420 字·建议 300–450 字」，且 mock 整块 113 字仍「偏短」无回归，无 pageerror/console.error）。
 - 来源：本轮 agent 第 1 条（最高价值）。**不在** logs 已做/已否决清单（轮次 17 仅验证过 mock 113 字，未验证真实多段产出）。
+- 提交：`2df52a5`
+
+### [轮次 21 · T8] 选题诊断(辅助产出)不再喂给摘要凝练/全文评审（修内部口径矛盾）
+- 现状/问题：`AbstractModule.pullAll` 调 `assembleBody(["review"])` 只排除评审，**保留 `critique`**；`WorkspaceSummary.reviewable` 也只 `f.id!=="review"`，**保留 `critique`**。而 `critique:result` 是「3 个最可能被毙的硬伤 / 一句话结论(建议更换)」的吐槽文本，不是申请书正文。后果：①「拉取工作台全文」生成摘要时模型会去凝练这段吐槽；②「送全文去评审」时三位评审去评审一份已含自我批判的诊断文本。更矛盾的是同一个 `WorkspaceSummary` 的 30 页 `BODY_SECTIONS` **明确把 critique 排除在正文外**，喂 LLM 时却当正文——口径自相矛盾。
+- 改进：`workspace.ts` 新增 `AUXILIARY_IDS = ["critique","review"]`（辅助产出，非正文，不喂 LLM 也不计页数，与 BODY_SECTIONS 口径对齐）；`AbstractModule` 改 `assembleBody([...AUXILIARY_IDS])`；`WorkspaceSummary.reviewable` 改为排除 AUXILIARY_IDS。e2e 加守卫「送评审不含选题诊断辅助产出」。
+- 验证：build=✅ 真实测试=✅ Playwright **58/58**（送评审内容由 904→772 字、断言「已排除」选题诊断，无 pageerror/console.error）。
+- 来源：本轮 agent 第 2 条。**部分相关但不同**：已否决项是「**导出**含诊断/评审作工作包（纯措辞）」可自洽；而把诊断文本作为 **LLM 输入**去生成摘要/评审是质量缺陷，未被覆盖。
 - 提交：见下方 commit。

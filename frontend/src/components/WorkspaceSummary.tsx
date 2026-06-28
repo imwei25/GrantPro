@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { readPersisted, writePersisted } from "../lib/usePersistentState";
 import { downloadText, downloadDocx, tsName } from "../lib/download";
 import { exportArchive } from "../lib/archive";
-import { usedScenes } from "../lib/workspace";
+import { usedScenes, AUXILIARY_IDS } from "../lib/workspace";
 import { apiUrl } from "../lib/api";
 import type { Reference } from "../lib/sse";
 import type { ModuleId } from "../App";
@@ -123,8 +123,9 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
       : body;
   };
 
-  // 把"申请书实质内容"各节(排除评审模拟这一元节点)汇成整体, 送去评审模拟。
-  const reviewable = filled.filter((f) => f.id !== "review");
+  // 把"申请书实质内容"各节(排除诊断/评审两类辅助产出)汇成整体, 送去评审模拟。
+  // 诊断是对选题的吐槽、评审是模拟意见, 都不该作为被评审的正文(与正文页数口径一致)。
+  const reviewable = filled.filter((f) => !(AUXILIARY_IDS as readonly string[]).includes(f.id));
   const sendToReview = () => {
     const body = reviewable.map((f) => `## ${f.title}\n\n${f.body}`).join("\n\n");
     writePersisted("review:text", body);
