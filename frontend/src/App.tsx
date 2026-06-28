@@ -187,10 +187,20 @@ export default function App() {
 
         <div className="sidebar-foot">
           {health ? (
-            <span className={`status-pill ${health.mock ? "demo" : "live"}`} data-testid="status">
-              <span className="dot" /> {health.mock ? "演示模式" : "在线"}
-              <span className="status-model">{health.mock ? "MOCK" : health.model}</span>
-            </span>
+            health.mock ? (
+              <span className="status-pill demo" data-testid="status">
+                <span className="dot" /> 演示模式<span className="status-model">MOCK</span>
+              </span>
+            ) : health.configured === false ? (
+              // 未配置密钥: 后端虽连通但点运行必报错, 不应显示醒目的"在线"误导用户。
+              <span className="status-pill wait" data-testid="status">
+                <span className="dot" /> 未就绪<span className="status-model">{health.model}</span>
+              </span>
+            ) : (
+              <span className="status-pill live" data-testid="status">
+                <span className="dot" /> 在线<span className="status-model">{health.model}</span>
+              </span>
+            )
           ) : healthErr ? (
             <span className="status-pill wait" data-testid="status">
               <span className="dot" /> 正在连接本地服务…

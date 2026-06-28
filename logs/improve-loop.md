@@ -438,4 +438,11 @@
 - 改进：`verify_citations` 抽 `_S2_PAPER` 正则——从 papers 的 `url` 提取 S2 paperId 纳入 `valid`，并从正文提取 S2 链接纳入 `cited`（与 PMID/DOI 同等回查）。`test_rationale.py` PAPERS 加一条 S2 文献，正文加「真实 S2 链接（应核实）+ 伪造 S2 链接（应被捕获）」。
 - 验证：mock=✅（无回归）单测=✅ `test_rationale` **13/13**（新增「S2 paperId 命中真实文献」「捕获伪造 S2 链接(不再逃逸核验)」；total 6/verified 3/unverified 3）。
 - 来源：本轮 agent 第 4 条。**不在** logs 清单（轮次 6 加 S2 时只验证了解析，没验证核验闭环）。
+- 提交：`1f0ed65`
+
+### [轮次 21 · T10/T8] 低优先健壮性/UX：非字符串输入不再裸 500 + 未配置密钥显示「未就绪」
+- 现状/问题：① `main.py:/api/run` 的 `try/except` 只捕 `ValueError`；提示词拼装(`_join` 与多处 `.strip()`)假设输入是字符串，若上游/直连客户端传入非字符串字段(如 `{"title":123}`)，`.strip()` 抛 `AttributeError` 绕过捕获→裸 500 无 SSE，前端只显示「服务返回错误: 500」。UI 始终发字符串故主路径不触发，属上游健壮性缺口。② `App.tsx` 侧边栏只要 `mock===false` 就显示醒目绿色「在线 + 模型名」，`configured===false`（无密钥）仅追加一行小字「未配置密钥」；新手看到「在线 deepseek-chat」会以为可用，点运行才收到「未配置 API key」。
+- 改进：① `/api/run` 在 `ValueError` 外补 `except (TypeError, AttributeError)`，返回可读 SSE 错误事件「输入字段格式不正确，请检查后重试。」而非裸 500（边界统一兜底，覆盖 `_join` 及各 builder 的 `.strip()`）。② 侧边栏状态拆三态：mock→演示模式 / `configured===false`→黄色「未就绪」/ 否则→绿色「在线」，与下方 warn 一致，消除误导。
+- 验证：build=✅ 真实测试=✅ Playwright **59/59**（mock 状态仍「演示模式」无回归）；curl 实测 `POST /api/run {"title":123}` → `event: error`「输入字段格式不正确」+ HTTP 200（旧码此处裸 500）；后端 mock 自测 `[OK]`、全部离线单测 31/9/24/13 绿。
+- 来源：本轮 agent 第 5、6 条（均标注为低优先）。**不在** logs 清单。
 - 提交：见下方 commit。

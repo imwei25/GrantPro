@@ -74,8 +74,15 @@ async def run(req: RunRequest) -> StreamingResponse:
     try:
         messages = build_messages(req.module, req.inputs)
     except ValueError as e:
+        # 已知校验失败(如未知模块): 原样回传可读信息。
         async def err_gen():
             yield _sse("error", {"message": str(e)})
+        return StreamingResponse(err_gen(), media_type="text/event-stream")
+    except (TypeError, AttributeError):
+        # 输入字段类型异常(如某字段不是字符串, 令提示词拼装 .strip() 失败):
+        # 返回可读的 SSE 错误事件, 而非裸 500(前端只会显示"服务返回错误: 500")。
+        async def err_gen():
+            yield _sse("error", {"message": "输入字段格式不正确，请检查后重试。"})
         return StreamingResponse(err_gen(), media_type="text/event-stream")
 
     async def gen():
