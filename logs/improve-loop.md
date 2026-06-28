@@ -365,4 +365,11 @@
 - 现状/问题：轮次 5 已加 Crossref 号称「覆盖全学科」，但 `rationale.py:_gen_queries` 的 system 提示词仍写死「你是医学/生物医学文献检索专家…适合在 PubMed 检索…使用 MeSH 术语」。非医学课题（钙钛矿/石墨烯等）被要求以医学框架产出 PubMed 式检索式再喂 Crossref——检索式与学科错配，多学科目标在检索式生成层并未真正落地。另：`RationaleModule` 头部文案仍只写「实际检索 PubMed」，未提 Crossref（doc drift）。
 - 改进：把检索式提示词抽为模块级 `QUERY_SYSTEM` 常量并改为学科中立的「跨学科科技文献检索专家」（去 PubMed 专有语法/MeSH 硬绑，强调同时适用 PubMed 与 Crossref、按学科酌情用领域术语）；`RationaleModule` 头部改为「实际检索 PubMed 与 Crossref（覆盖医学及材料/物理/化学/工程等全学科）」；`test_rationale.py` 加 3 条守卫（跨学科 / 含 Crossref / 不含医学·MeSH）。
 - 验证：mock=✅（无回归）单测=✅ `test_rationale` 11/11 build=✅。
+- 提交：`f27a47d`
+
+### [轮次 19 · T5/T9] 文档与自查清单同步 2026 代表作 + 正文结构（doc drift）
+- 现状/问题：README/使用说明 全无 2026 改版痕迹；自查清单也没提 2026 新增的「代表作（不超过 5 项）+ 本人贡献说明」（替代传统论文论著目录）这一真实提交要求。用户照旧准备材料会漏项。
+- 改进：`compliance.py` CHECKLIST 增第 7 条代表作提醒；README 与 使用说明.md 各加一段「2026 申请书改版提示」（三板块 + 30 页 + 代表作，均注「以当年指南为准」）；`test_prompts.py` 加「自查清单含代表作提醒」守卫。
+- 验证：mock=✅ 单测=✅ `test_prompts` 28/28（清单 7 条）真实测试=✅ Playwright **54/54**（"自查清单有条目 共 7 条"，无 pageerror/console.error）。
+- 来源：同方向 A（2026 代表作"能力证明"新规多源一致）。
 - 提交：见下方 commit。

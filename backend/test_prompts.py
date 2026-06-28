@@ -34,6 +34,7 @@ def main() -> int:
         ("scheme 含 30 页上限提示", "30 页" in _system("scheme", {"idea": "x"})),
         ("scheme 含三板块结构", "研究基础" in _system("scheme", {"idea": "x"})),
         ("自查清单含 30 页上限", any("30 页" in c for c in CHECKLIST)),
+        ("自查清单含代表作提醒", any("代表" in c for c in CHECKLIST)),
         ("review 含评审", "评审" in _system("review", {"text": "x"})),
         ("review 含评分汇总", "评分汇总" in _system("review", {"text": "x"})),
         ("review 含共识弱点", "共识弱点" in _system("review", {"text": "x"})),
