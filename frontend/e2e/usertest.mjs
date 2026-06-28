@@ -198,6 +198,10 @@ try {
   ok("工作台汇总出现", await page.getByTestId("workspace").isVisible().catch(() => false));
   const wsCount = await page.getByTestId("workspace-list").locator("li").count().catch(() => 0);
   ok("汇总含已完成各节", wsCount >= 5, `共 ${wsCount} 节`);
+  // 2026 改版: 正文 30 页篇幅红线提示(仅统计正文章节, 排除诊断/评审辅助产出)
+  const meterText = await page.getByTestId("ws-pagemeter").textContent().catch(() => "");
+  ok("工作台显示正文篇幅页数估算", /正文约\s*[\d.]+\s*页/.test(meterText || ""), `仪表="${(meterText || "").slice(0, 40)}"`);
+  ok("篇幅仪表标注 30 页上限", /30\s*页/.test(meterText || ""));
   let dlOk = false;
   try {
     const [dl] = await Promise.all([

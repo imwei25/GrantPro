@@ -1021,6 +1021,18 @@ select:focus {
   font-size: 13px;
   color: var(--ink-dim, #9fb0d0);
 }
+.ws-pagemeter {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--ink-dim, #9fb0d0);
+  border-left: 3px solid var(--line, #2a3550);
+  padding-left: 10px;
+}
+.ws-pagemeter.over {
+  color: #ffb4a8;
+  border-left-color: #d9534f;
+  font-weight: 600;
+}
 .workspace-list {
   list-style: none;
   margin: 0 0 16px;

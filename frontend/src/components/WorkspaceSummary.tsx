@@ -25,6 +25,20 @@ interface Filled {
   body: string;
 }
 
+// 估算"正文"页数: 自 2026 年起面上/青年 C 类申请书正文原则上不超过 30 页。
+// 仅统计构成正文的实质章节(立项依据/研究方案/润色), 排除选题诊断与评审模拟
+// 这两类"辅助产出"(不随申请书提交)。NSFC 正文模板单页约 1000 中文字符(粗略)。
+const BODY_SECTIONS = new Set<ModuleId>(["rationale", "scheme", "polish"]);
+const CHARS_PER_PAGE = 1000;
+const PAGE_LIMIT = 30;
+
+function estimatePages(filled: Filled[]): number {
+  const chars = filled
+    .filter((f) => BODY_SECTIONS.has(f.id))
+    .reduce((sum, f) => sum + f.chars, 0);
+  return chars / CHARS_PER_PAGE;
+}
+
 function collect(): Filled[] {
   const out: Filled[] = [];
   for (const s of SECTIONS) {
@@ -68,6 +82,10 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
   }, []);
 
   if (filled.length === 0) return null;
+
+  const pages = estimatePages(filled);
+  const hasBody = filled.some((f) => BODY_SECTIONS.has(f.id));
+  const overLimit = pages > PAGE_LIMIT;
 
   // 清空全部工作台(各模块的输入与结果), 用于开始一份新的申请。
   // 二次确认避免误删; 清掉所有 nsfc: 前缀的持久化键。
@@ -127,6 +145,18 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
           已完成 {filled.length} / {SECTIONS.length} 节，可汇总成一份完整材料导出（末尾自动附 AI 使用标注）
         </span>
       </div>
+
+      {hasBody && (
+        <div
+          className={`ws-pagemeter ${overLimit ? "over" : ""}`}
+          data-testid="ws-pagemeter"
+        >
+          正文约 {pages.toFixed(1)} 页（立项依据/研究方案/润色，不含选题诊断、评审模拟等辅助产出）
+          {overLimit
+            ? " · 已超 30 页上限，建议精简（2026 新规）"
+            : " · 上限 30 页（2026 新规，以当年指南为准）"}
+        </div>
+      )}
 
       <ul className="workspace-list" data-testid="workspace-list">
         {filled.map((f) => (
