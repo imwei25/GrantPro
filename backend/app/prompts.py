@@ -90,6 +90,36 @@ def build_scheme(inputs: dict) -> list[dict]:
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
+# ------------------------- 2.5 研究基础(2026 正文第三板块) -------------------------
+
+def build_foundation(inputs: dict) -> list[dict]:
+    # 研究基础是 2026 申请书正文三板块之一, 但内容全是申请人自身的前期事实,
+    # AI 只能"组织/润色其提供的事实", 绝不能新增或编造任何成果/数据/条件。
+    system = (
+        "你是国家自然科学基金申请书写作方法学专家。"
+        + _COMPLIANCE
+        + "“研究基础”是 2026 年起申请书正文的三大板块之一（立项依据 / 研究内容 / 研究基础）。"
+        "请仅基于申请人提供的真实信息，把零散的前期积累组织成规范、有说服力的“研究基础”草稿。"
+        "铁律：只整理、归类与润色申请人已提供的事实，"
+        "严禁新增或编造任何论文、成果、数据、专利、设备、平台或合作关系；"
+        "凡申请人未提供的内容，必须明确标注“【需申请人补充】”而不得替其杜撰。\n"
+        "按以下结构输出：\n"
+        "## 一、与本项目相关的研究工作积累与已取得成果\n概述申请人前期围绕该方向已开展的工作与代表性结果。\n"
+        "## 二、已有结果与预备数据\n梳理可支撑本申请的初步结果、预实验或数据（仅限申请人提供者）。\n"
+        "## 三、已具备的研究条件\n实验平台、关键设备、数据资源、合作单位等已有条件。\n"
+        "## 四、尚缺条件与解决途径\n指出仍缺少的条件，并给出务实可行的获取/解决方案。\n"
+        "## 五、与本申请项目的衔接\n说明上述前期工作如何为本项目的科学问题与研究内容提供支撑。\n"
+        "## 自检提示\n指出研究基础中较薄弱、需申请人补强或补充佐证之处。\n"
+        "表达凝练、客观、务实，不夸大、不空泛。"
+    )
+    user = (
+        _join("研究领域/学科", inputs.get("field", ""))
+        + "以下是申请人提供的前期基础材料（工作积累、已有结果、设备平台、团队与合作等）：\n\n"
+        + (inputs.get("material", "") or "").strip()
+    )
+    return [{"role": "system", "content": system}, {"role": "user", "content": user}]
+
+
 # ------------------------- 3. 评审模拟 -------------------------
 
 def build_review(inputs: dict) -> list[dict]:
@@ -186,6 +216,7 @@ def build_revise(inputs: dict) -> list[dict]:
 _BUILDERS = {
     "critique": build_critique,
     "scheme": build_scheme,
+    "foundation": build_foundation,
     "review": build_review,
     "polish": build_polish,
     "abstract": build_abstract,

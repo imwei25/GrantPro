@@ -35,6 +35,13 @@ def main() -> int:
         ("scheme 含三板块结构", "研究基础" in _system("scheme", {"idea": "x"})),
         ("自查清单含 30 页上限", any("30 页" in c for c in CHECKLIST)),
         ("自查清单含代表作提醒", any("代表" in c for c in CHECKLIST)),
+        # 研究基础(2026 正文第三板块)组织器: 结构齐全 + 严禁编造前期成果
+        ("foundation 含研究基础结构", all(
+            s in _system("foundation", {"material": "x"})
+            for s in ("研究工作积累", "已有结果", "研究条件", "衔接")
+        )),
+        ("foundation 严禁编造成果", "严禁新增或编造" in _system("foundation", {"material": "x"})),
+        ("foundation 注入材料", "材料BB" in build_messages("foundation", {"material": "材料BB"})[1]["content"]),
         ("review 含评审", "评审" in _system("review", {"text": "x"})),
         ("review 含评分汇总", "评分汇总" in _system("review", {"text": "x"})),
         ("review 含共识弱点", "共识弱点" in _system("review", {"text": "x"})),

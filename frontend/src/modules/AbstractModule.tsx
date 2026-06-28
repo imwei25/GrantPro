@@ -29,7 +29,7 @@ export default function AbstractModule() {
   return (
     <div className="module">
       <header className="module-head">
-        <span className="eyebrow">06 · ABSTRACT</span>
+        <span className="eyebrow">07 · ABSTRACT</span>
         <h1>项目摘要</h1>
         <p>
           从你已完成的各节内容反向凝练出符合基金委要求的<strong>项目摘要 + 关键词（中英）</strong>，

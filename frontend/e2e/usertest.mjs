@@ -29,7 +29,7 @@ try {
   await page.goto(BASE, { waitUntil: "networkidle" });
   ok("首页标题加载", await page.locator(".hero-title").isVisible());
   ok("合规横幅可见", await page.getByTestId("compliance-banner").isVisible());
-  ok("流水线6张卡片", (await page.getByTestId("pipeline").locator(".stage").count()) === 6);
+  ok("流水线7张卡片", (await page.getByTestId("pipeline").locator(".stage").count()) === 7);
   await page.waitForTimeout(500);
   const statusText = await page.getByTestId("status").innerText().catch(() => "");
   ok("状态显示演示模式(MOCK)", /演示模式|MOCK/.test(statusText), statusText.replace(/\s+/g, " "));
@@ -108,6 +108,19 @@ try {
   await page.waitForTimeout(200);
   const copyLabel = await page.getByTestId("copy-btn").innerText().catch(() => "");
   ok("复制按钮有结果反馈", /已复制|复制失败/.test(copyLabel), copyLabel);
+
+  // ---- 研究基础 foundation: 填入示例 -> 运行 -> 出研究基础(2026 正文第三板块) ----
+  await page.getByTestId("nav-foundation").click();
+  await page.waitForTimeout(150);
+  await page.getByTestId("example-btn").click();
+  await page.waitForTimeout(100);
+  ok("[foundation] 示例填好必填项", (await page.getByTestId("input-material").inputValue().catch(() => "")).length > 0);
+  await page.getByTestId("run-btn").click();
+  try {
+    await page.getByTestId("result-text").filter({ hasText: "[MOCK]" }).waitFor({ timeout: 15000 });
+    ok("[foundation] 流式输出到达", true);
+  } catch { ok("[foundation] 流式输出到达", false); }
+  await page.waitForTimeout(150);
 
   // ---- 项目摘要 abstract: 填入示例 -> 运行 -> 出摘要 ----
   await page.getByTestId("nav-abstract").click();

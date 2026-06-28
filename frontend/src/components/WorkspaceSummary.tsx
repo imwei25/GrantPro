@@ -13,8 +13,9 @@ const SECTIONS: { id: ModuleId; n: string; title: string; key: string }[] = [
   { id: "critique", n: "01", title: "选题诊断", key: "critique:result" },
   { id: "rationale", n: "02", title: "立项依据", key: "rationale:result" },
   { id: "scheme", n: "03", title: "研究方案", key: "scheme:result" },
-  { id: "review", n: "04", title: "评审模拟", key: "review:result" },
-  { id: "polish", n: "05", title: "润色合规", key: "polish:result" },
+  { id: "foundation", n: "04", title: "研究基础", key: "foundation:result" },
+  { id: "review", n: "05", title: "评审模拟", key: "review:result" },
+  { id: "polish", n: "06", title: "润色合规", key: "polish:result" },
 ];
 
 interface Filled {
@@ -28,7 +29,7 @@ interface Filled {
 // 估算"正文"页数: 自 2026 年起面上/青年 C 类申请书正文原则上不超过 30 页。
 // 仅统计构成正文的实质章节(立项依据/研究方案/润色), 排除选题诊断与评审模拟
 // 这两类"辅助产出"(不随申请书提交)。NSFC 正文模板单页约 1000 中文字符(粗略)。
-const BODY_SECTIONS = new Set<ModuleId>(["rationale", "scheme", "polish"]);
+const BODY_SECTIONS = new Set<ModuleId>(["rationale", "scheme", "foundation", "polish"]);
 const CHARS_PER_PAGE = 1000;
 const PAGE_LIMIT = 30;
 
@@ -151,7 +152,7 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
           className={`ws-pagemeter ${overLimit ? "over" : ""}`}
           data-testid="ws-pagemeter"
         >
-          正文约 {pages.toFixed(1)} 页（立项依据/研究方案/润色，不含选题诊断、评审模拟等辅助产出）
+          正文约 {pages.toFixed(1)} 页（立项依据/研究方案/研究基础/润色，不含选题诊断、评审模拟等辅助产出）
           {overLimit
             ? " · 已超 30 页上限，建议精简（2026 新规）"
             : " · 上限 30 页（2026 新规，以当年指南为准）"}

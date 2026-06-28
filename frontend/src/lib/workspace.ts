@@ -5,6 +5,7 @@ export const WORKSPACE_SECTIONS = [
   { id: "critique", title: "选题诊断", key: "critique:result" },
   { id: "rationale", title: "立项依据", key: "rationale:result" },
   { id: "scheme", title: "研究方案", key: "scheme:result" },
+  { id: "foundation", title: "研究基础", key: "foundation:result" },
   { id: "review", title: "评审模拟", key: "review:result" },
   { id: "polish", title: "润色合规", key: "polish:result" },
 ] as const;
@@ -14,7 +15,7 @@ export function usedScenes(): string {
   const has = (key: string) => (readPersisted<string>(key, "") || "").trim().length > 0;
   const scenes: string[] = [];
   if (has("rationale:result")) scenes.push("文献检索与整理");
-  if (["critique:result", "scheme:result", "review:result", "abstract:result"].some(has)) {
+  if (["critique:result", "scheme:result", "foundation:result", "review:result", "abstract:result"].some(has)) {
     scenes.push("研究思路梳理与自检");
   }
   if (has("polish:result")) scenes.push("语言表达润色");

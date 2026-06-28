@@ -4,6 +4,7 @@ import { writePersisted } from "./lib/usePersistentState";
 import CritiqueModule from "./modules/CritiqueModule";
 import RationaleModule from "./modules/RationaleModule";
 import SchemeModule from "./modules/SchemeModule";
+import FoundationModule from "./modules/FoundationModule";
 import ReviewModule from "./modules/ReviewModule";
 import PolishModule from "./modules/PolishModule";
 import AbstractModule from "./modules/AbstractModule";
@@ -11,7 +12,7 @@ import CompliancePanel from "./components/CompliancePanel";
 import WorkspaceSummary from "./components/WorkspaceSummary";
 import ArchiveBar from "./components/ArchiveBar";
 
-export type ModuleId = "home" | "critique" | "rationale" | "scheme" | "review" | "polish" | "abstract";
+export type ModuleId = "home" | "critique" | "rationale" | "scheme" | "foundation" | "review" | "polish" | "abstract";
 // 跨模块传递: 把数据写入目标模块的持久化字段, 再切换过去。
 export type Goto = (target: ModuleId, patch?: Record<string, unknown>) => void;
 
@@ -24,15 +25,17 @@ interface NavItem {
   icon: keyof typeof ICONS;
 }
 
-// 六个模块: 01–05 是一条真实工作流水线(选题→依据→方案→评审→润色),
-// 06 项目摘要从全文反向凝练, 故置于末端。编号编码的是顺序本身, 而非装饰。
+// 七个模块: 01–06 覆盖正文写作(选题→依据→方案→研究基础→评审→润色),
+// 其中 04 研究基础是 2026 正文三板块之一; 07 项目摘要从全文反向凝练, 置于末端。
+// 编号编码的是顺序本身, 而非装饰。
 const NAV: NavItem[] = [
   { id: "critique", n: "01", kicker: "DIAGNOSE", title: "选题诊断", desc: "评审视角挑硬伤、定科学问题属性", icon: "target" },
   { id: "rationale", n: "02", kicker: "GROUND", title: "立项依据", desc: "检索真实文献、接地撰写、核验引用", icon: "layers" },
   { id: "scheme", n: "03", kicker: "DESIGN", title: "研究方案", desc: "目标·内容·关键问题·技术路线", icon: "flow" },
-  { id: "review", n: "04", kicker: "REVIEW", title: "评审模拟", desc: "三位评审独立打分挑刺", icon: "scope" },
-  { id: "polish", n: "05", kicker: "REFINE", title: "润色合规", desc: "润色为基金书面语 + AI 使用标注", icon: "spark" },
-  { id: "abstract", n: "06", kicker: "ABSTRACT", title: "项目摘要", desc: "从全文凝练摘要 + 关键词(中英)", icon: "doc" },
+  { id: "foundation", n: "04", kicker: "BASIS", title: "研究基础", desc: "把前期积累整理成规范研究基础", icon: "base" },
+  { id: "review", n: "05", kicker: "REVIEW", title: "评审模拟", desc: "三位评审独立打分挑刺", icon: "scope" },
+  { id: "polish", n: "06", kicker: "REFINE", title: "润色合规", desc: "润色为基金书面语 + AI 使用标注", icon: "spark" },
+  { id: "abstract", n: "07", kicker: "ABSTRACT", title: "项目摘要", desc: "从全文凝练摘要 + 关键词(中英)", icon: "doc" },
 ];
 
 const ICONS = {
@@ -74,6 +77,13 @@ const ICONS = {
       <path d="M6 3h8l4 4v14H6z" />
       <path d="M14 3v4h4" />
       <path d="M9 12h6M9 16h6" />
+    </>
+  ),
+  base: (
+    <>
+      <path d="M4 20h16" />
+      <path d="M7 20v-6M12 20v-9M17 20v-4" />
+      <path d="M4 9l8-5 8 5" />
     </>
   ),
 } as const;
@@ -203,6 +213,7 @@ export default function App() {
         {active === "critique" && <CritiqueModule goto={goto} />}
         {active === "rationale" && <RationaleModule goto={goto} />}
         {active === "scheme" && <SchemeModule goto={goto} />}
+        {active === "foundation" && <FoundationModule />}
         {active === "review" && <ReviewModule />}
         {active === "polish" && <PolishModule />}
         {active === "abstract" && <AbstractModule />}
@@ -222,7 +233,7 @@ function Home({ onPick }: { onPick: (m: ModuleId) => void }) {
           打磨成<span className="grad">经得起评审</span>的申请书
         </h1>
         <p className="hero-sub">
-          五道工序，一条流水线：从选题诊断到立项依据、研究方案、评审模拟，再到润色与合规标注。
+          一条流水线：从选题诊断到立项依据、研究方案、研究基础，再到评审模拟、润色与合规标注。
           文献真实接地、引用自动核验，每一步都站在评审专家的对面替你挑刺。
         </p>
         <span className="beam" aria-hidden="true" />
