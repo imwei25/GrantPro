@@ -272,8 +272,8 @@ try {
   await page.waitForTimeout(200);
   const reviewInput = await page.getByTestId("input-text").inputValue().catch(() => "");
   ok("送全文跳到评审且预填内容", reviewInput.includes("立项依据") || reviewInput.includes("研究方案"), `${reviewInput.length} 字`);
-  // 辅助产出(选题诊断)不应作为正文被送进评审模拟
-  ok("送评审不含选题诊断辅助产出", !reviewInput.includes("选题诊断"), reviewInput.includes("选题诊断") ? "误含诊断" : "已排除");
+  // 只送正文三板块: 诊断/评审/润色稿(重写副本)都不应作为被评审的正文(与页数/摘要喂入口径一致)
+  ok("送评审只含正文三板块(不含诊断/润色)", !reviewInput.includes("## 选题诊断") && !reviewInput.includes("## 润色合规"), reviewInput.replace(/\s+/g, " ").slice(0, 50));
 
   // 回首页继续清空全部测试
   await page.getByTestId("brand").click();

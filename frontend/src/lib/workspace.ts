@@ -22,14 +22,16 @@ export function usedScenes(): string {
   return scenes.join("、");
 }
 
-// "辅助产出": 选题诊断(对选题硬伤的吐槽/建议更换)与评审模拟(模拟评审意见)
-// 都不是申请书正文, 不应作为"全文"喂给 LLM(否则摘要会去凝练吐槽、评审会去评审
-// 一份已含自我批判的文本), 也不计入正文页数。与 WorkspaceSummary.BODY_SECTIONS 口径一致。
-export const AUXILIARY_IDS = ["critique", "review"] as const;
+// 申请书"正文"= 2026 三板块(立项依据/研究方案/研究基础)。这是三处共用的唯一口径:
+//   · 喂给 LLM 的"全文"(摘要凝练 assembleBody、送全文评审 WorkspaceSummary.reviewable)
+//   · 正文页数估算(WorkspaceSummary.BODY_SECTIONS 直接由此派生)
+// 刻意排除: 选题诊断/评审模拟(辅助产出, 不随申请书提交; 诊断是吐槽、评审是模拟意见),
+// 以及润色稿(正文章节的"重写副本", 含修改说明/AI 标注等非正文噪声, 计入会与被润色原章节重复)。
+export const BODY_IDS = ["rationale", "scheme", "foundation"] as const;
 
-// 把已完成各节(排除 excludeIds)拼成一段带小标题的全文。
-export function assembleBody(excludeIds: string[] = []): string {
-  return WORKSPACE_SECTIONS.filter((s) => !excludeIds.includes(s.id))
+// 把"正文三板块"已完成的各节拼成一段带小标题的全文(摘要凝练/送评审复用)。
+export function assembleBody(): string {
+  return WORKSPACE_SECTIONS.filter((s) => (BODY_IDS as readonly string[]).includes(s.id))
     .map((s) => ({ s, t: (readPersisted<string>(s.key, "") || "").trim() }))
     .filter((x) => x.t)
     .map((x) => `## ${x.s.title}\n\n${x.t}`)

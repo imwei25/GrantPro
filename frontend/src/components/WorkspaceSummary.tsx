@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { readPersisted, writePersisted } from "../lib/usePersistentState";
 import { downloadText, downloadDocx, tsName } from "../lib/download";
 import { exportArchive } from "../lib/archive";
-import { usedScenes, AUXILIARY_IDS } from "../lib/workspace";
+import { usedScenes, BODY_IDS } from "../lib/workspace";
 import { apiUrl } from "../lib/api";
 import type { Reference } from "../lib/sse";
 import type { ModuleId } from "../App";
@@ -27,11 +27,10 @@ interface Filled {
 }
 
 // 估算"正文"页数: 自 2026 年起面上/青年 C 类申请书正文原则上不超过 30 页。
-// 仅统计 2026 正文三板块(立项依据/研究方案/研究基础)。刻意排除:
-//   · 选题诊断、评审模拟 —— 辅助产出, 不随申请书提交;
-//   · 润色稿 —— 是上述章节的"重写版", 计入会与被润色原章节重复(约 2x 高估)。
+// 仅统计 2026 正文三板块(立项依据/研究方案/研究基础) —— 与 lib/workspace.ts 的 BODY_IDS
+// 同一口径(喂 LLM 的全文/送评审也用它)。排除诊断/评审(辅助产出)与润色稿(重写副本, 否则约 2x 高估)。
 // NSFC 正文模板单页约 1000 中文字符(粗略)。
-const BODY_SECTIONS = new Set<ModuleId>(["rationale", "scheme", "foundation"]);
+const BODY_SECTIONS = new Set<ModuleId>(BODY_IDS as readonly ModuleId[]);
 const CHARS_PER_PAGE = 1000;
 const PAGE_LIMIT = 30;
 
@@ -125,9 +124,9 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
       : body;
   };
 
-  // 把"申请书实质内容"各节(排除诊断/评审两类辅助产出)汇成整体, 送去评审模拟。
-  // 诊断是对选题的吐槽、评审是模拟意见, 都不该作为被评审的正文(与正文页数口径一致)。
-  const reviewable = filled.filter((f) => !(AUXILIARY_IDS as readonly string[]).includes(f.id));
+  // 送去评审模拟的"正文"= 三板块(与页数/摘要喂入口径一致): 诊断是吐槽、评审是模拟意见、
+  // 润色稿是含修改说明/AI 标注的重写副本, 都不该作为被评审的正文。
+  const reviewable = filled.filter((f) => BODY_SECTIONS.has(f.id));
   const sendToReview = () => {
     const body = reviewable.map((f) => `## ${f.title}\n\n${f.body}`).join("\n\n");
     writePersisted("review:text", body);

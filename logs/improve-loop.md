@@ -445,4 +445,10 @@
 - 改进：① `/api/run` 在 `ValueError` 外补 `except (TypeError, AttributeError)`，返回可读 SSE 错误事件「输入字段格式不正确，请检查后重试。」而非裸 500（边界统一兜底，覆盖 `_join` 及各 builder 的 `.strip()`）。② 侧边栏状态拆三态：mock→演示模式 / `configured===false`→黄色「未就绪」/ 否则→绿色「在线」，与下方 warn 一致，消除误导。
 - 验证：build=✅ 真实测试=✅ Playwright **59/59**（mock 状态仍「演示模式」无回归）；curl 实测 `POST /api/run {"title":123}` → `event: error`「输入字段格式不正确」+ HTTP 200（旧码此处裸 500）；后端 mock 自测 `[OK]`、全部离线单测 31/9/24/13 绿。
 - 来源：本轮 agent 第 5、6 条（均标注为低优先）。**不在** logs 清单。
+- 提交：`36d23dd`
+
+### [轮次 21 · T8] 统一「正文」口径：润色稿同步移出「喂 LLM 的全文」（闭合本轮自引入的半截不一致）
+- 来源：收敛**再确认**派独立 agent 审查本轮 6 处改动，校验 A1/A3/A4/A5 均正确，但抓到一个我自己引入的不一致——方向 2/3 把 `polish` 移出了「正文页数」(BODY_SECTIONS={r,s,f})，却**没**移出「喂 LLM 的全文」(AUXILIARY_IDS 只含 critique/review，其补集仍含 polish)；且我在 `workspace.ts` 新写的注释「与 BODY_SECTIONS 口径一致」**失实**（两集合差一个 polish）。即同一原则（润色稿是含修改说明/AI 标注的重写副本，不应当正文）只执行了一半：摘要「拉取全文」与「送全文评审」仍会带进润色稿，造成与被润色原章节重复 + 非正文噪声。
+- 改进：抽单一真源 `BODY_IDS=[rationale,scheme,foundation]`（2026 正文三板块）于 `workspace.ts`，三处共用——`assembleBody()` 改为只拼 BODY_IDS（无参）、`WorkspaceSummary.BODY_SECTIONS` 由 `BODY_IDS` 派生、`reviewable` 改为 `BODY_SECTIONS.has(id)`；删除半截的 `AUXILIARY_IDS`，注释改为准确表述。e2e 守卫升级为「送评审只含正文三板块(不含诊断/润色)」。
+- 验证：build=✅ 真实测试=✅ Playwright **59/59**（送评审内容 772→696 字、断言不含「## 选题诊断」「## 润色合规」，docx/存档往返全绿，无 pageerror/console.error）。
 - 提交：见下方 commit。

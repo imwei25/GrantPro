@@ -1,7 +1,7 @@
 import { useStream } from "../lib/useStream";
 import { usePersistentState } from "../lib/usePersistentState";
 import { useCtrlEnterSubmit } from "../lib/useCtrlEnterSubmit";
-import { assembleBody, AUXILIARY_IDS } from "../lib/workspace";
+import { assembleBody } from "../lib/workspace";
 import { EXAMPLES } from "../lib/examples";
 import ResultPanel from "../components/ResultPanel";
 
@@ -24,7 +24,7 @@ export default function AbstractModule() {
   };
   useCtrlEnterSubmit(submit);
 
-  const pullAll = () => setSource(assembleBody([...AUXILIARY_IDS])); // 排除诊断与评审两类辅助产出, 只凝练正文
+  const pullAll = () => setSource(assembleBody()); // 只凝练正文三板块, 排除诊断/评审/润色稿
   const fillExample = () =>
     setSource(`## 立项依据\n\n${EXAMPLES.review.text}\n\n## 研究方案\n\n${EXAMPLES.scheme.idea}`);
 
