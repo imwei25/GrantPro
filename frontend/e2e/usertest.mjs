@@ -228,6 +228,8 @@ try {
   const meterText = await page.getByTestId("ws-pagemeter").textContent().catch(() => "");
   ok("工作台显示正文篇幅页数估算", /正文约\s*[\d.]+\s*页/.test(meterText || ""), `仪表="${(meterText || "").slice(0, 40)}"`);
   ok("篇幅仪表标注 30 页上限", /30\s*页/.test(meterText || ""));
+  // 润色稿不计入正文页数(与被润色章节重复, 否则约 2x 高估): 计数集到"研究基础"为止, 后接"，"非"/润色"
+  ok("正文页数不重复计入润色稿", /研究基础[，)）]/.test(meterText || ""), `仪表="${(meterText || "").slice(0, 40)}"`);
   let dlOk = false;
   try {
     const [dl] = await Promise.all([

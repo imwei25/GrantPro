@@ -27,9 +27,11 @@ interface Filled {
 }
 
 // 估算"正文"页数: 自 2026 年起面上/青年 C 类申请书正文原则上不超过 30 页。
-// 仅统计构成正文的实质章节(立项依据/研究方案/润色), 排除选题诊断与评审模拟
-// 这两类"辅助产出"(不随申请书提交)。NSFC 正文模板单页约 1000 中文字符(粗略)。
-const BODY_SECTIONS = new Set<ModuleId>(["rationale", "scheme", "foundation", "polish"]);
+// 仅统计 2026 正文三板块(立项依据/研究方案/研究基础)。刻意排除:
+//   · 选题诊断、评审模拟 —— 辅助产出, 不随申请书提交;
+//   · 润色稿 —— 是上述章节的"重写版", 计入会与被润色原章节重复(约 2x 高估)。
+// NSFC 正文模板单页约 1000 中文字符(粗略)。
+const BODY_SECTIONS = new Set<ModuleId>(["rationale", "scheme", "foundation"]);
 const CHARS_PER_PAGE = 1000;
 const PAGE_LIMIT = 30;
 
@@ -153,7 +155,7 @@ export default function WorkspaceSummary({ onPick }: { onPick: (m: ModuleId) => 
           className={`ws-pagemeter ${overLimit ? "over" : ""}`}
           data-testid="ws-pagemeter"
         >
-          正文约 {pages.toFixed(1)} 页（立项依据/研究方案/研究基础/润色，不含选题诊断、评审模拟等辅助产出）
+          正文约 {pages.toFixed(1)} 页（立项依据/研究方案/研究基础，不含选题诊断/评审/润色稿等非正文）
           {overLimit
             ? " · 已超 30 页上限，建议精简（2026 新规）"
             : " · 上限 30 页（2026 新规，以当年指南为准）"}

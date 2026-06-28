@@ -424,4 +424,11 @@
 - 改进：`workspace.ts` 新增 `AUXILIARY_IDS = ["critique","review"]`（辅助产出，非正文，不喂 LLM 也不计页数，与 BODY_SECTIONS 口径对齐）；`AbstractModule` 改 `assembleBody([...AUXILIARY_IDS])`；`WorkspaceSummary.reviewable` 改为排除 AUXILIARY_IDS。e2e 加守卫「送评审不含选题诊断辅助产出」。
 - 验证：build=✅ 真实测试=✅ Playwright **58/58**（送评审内容由 904→772 字、断言「已排除」选题诊断，无 pageerror/console.error）。
 - 来源：本轮 agent 第 2 条。**部分相关但不同**：已否决项是「**导出**含诊断/评审作工作包（纯措辞）」可自洽；而把诊断文本作为 **LLM 输入**去生成摘要/评审是质量缺陷，未被覆盖。
+- 提交：`1c7b1cb`
+
+### [轮次 21 · T8] 润色稿不再重复计入 30 页正文红线（招牌 2026 功能算大约 2x 修复）
+- 现状/问题：`WorkspaceSummary.BODY_SECTIONS` 含 `polish`，把 `polish:result` 字数计入正文页数。但润色模块的输入通常就是用户粘贴的立项依据/研究方案，`polish:result` ≈ 同段内容的润色版。后果：用户润色 2000 字立项依据后，页数 =(立项依据 2000 + 润色 2000)/1000 = 4 页，真实正文仅 ~2 页——在专为 2026「正文≤30 页」红线做的仪表上约 2x 高估，可能误导用户去无谓删减。
+- 改进：`BODY_SECTIONS` 改为只含 2026 正文三板块 `[rationale, scheme, foundation]`（润色是「重写工具」非独立正文板块）；仪表文案改为「立项依据/研究方案/研究基础，不含选题诊断/评审/润色稿等非正文」；注释写明排除润色的理由。e2e 加守卫「正文页数不重复计入润色稿」（计数集到「研究基础」为止）。
+- 验证：build=✅ 真实测试=✅ Playwright **59/59**（仪表="正文约 0.5 页（立项依据/研究方案/研究基础，不含…润色稿等非正文)"，无 pageerror/console.error）。
+- 来源：本轮 agent 第 3 条。**不在** logs 清单（轮次 19 加页数估算时刻意排诊断/评审，却把 polish 当正文，未察觉与被润色章节重复）。
 - 提交：见下方 commit。
