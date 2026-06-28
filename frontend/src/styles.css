@@ -784,11 +784,17 @@ select:focus {
   vertical-align: middle;
 }
 .verify-ok,
-.verify-bad {
+.verify-bad,
+.verify-note {
   margin-top: 14px;
   padding: 13px 16px;
   border-radius: var(--radius-sm);
   font-size: 13px;
+}
+.verify-note {
+  background: rgba(148, 163, 184, 0.09);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  color: #c2ccda;
 }
 .verify-ok {
   background: rgba(70, 211, 154, 0.09);

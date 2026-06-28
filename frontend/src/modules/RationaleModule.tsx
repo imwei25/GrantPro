@@ -235,7 +235,13 @@ export default function RationaleModule({ goto }: { goto: Goto }) {
       )}
 
       {verify && !running && (
-        verify.unverified.length === 0 ? (
+        verify.total === 0 ? (
+          // 正文一处文献引用标记都没提取到: 不能显示"均来自真实文献"的绿色安心(那是虚假的),
+          // 给中性提示, 提醒申请人确认是否已据真实文献充分引用。
+          <div className="verify-note" data-testid="verify">
+            ℹ 引用核验：未在正文中检测到文献引用标记。请确认立项依据是否已据真实文献充分引用（建议每处论断附可核验的 PubMed/DOI 链接）。
+          </div>
+        ) : verify.unverified.length === 0 ? (
           <div className="verify-ok" data-testid="verify">
             ✓ 引用核验：正文 {verify.total} 处文献引用均来自本次检索到的真实文献（仍建议你逐条复核内容是否相符）。
           </div>
